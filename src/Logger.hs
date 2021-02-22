@@ -9,9 +9,9 @@ module Logger
   , error
   ) where
 
-import Data.Aeson (FromJSON(..), withText)
-import Data.Text (unpack)
-import Prelude hiding (error, log)
+import           Data.Aeson (FromJSON (..), withText)
+import           Data.Text  (unpack)
+import           Prelude    hiding (error, log)
 
 data Severity
   = Debug
@@ -21,10 +21,10 @@ data Severity
   deriving (Eq, Ord)
 
 instance Show Severity where
-  show Debug = "[ DEBUG ]"
-  show Info = "[ INFO  ]"
+  show Debug   = "[ DEBUG ]"
+  show Info    = "[ INFO  ]"
   show Warning = "[ WARN  ]"
-  show Error = "[ ERROR ]"
+  show Error   = "[ ERROR ]"
 
 newtype Handle =
   Handle
@@ -47,8 +47,8 @@ instance FromJSON Severity where
   parseJSON =
     withText "FromJSON Logger.Severity" $ \t ->
       case t of
-        "debug" -> pure Debug
-        "info" -> pure Info
+        "debug"   -> pure Debug
+        "info"    -> pure Info
         "warning" -> pure Warning
-        "error" -> pure Error
-        _ -> fail $ "Unkown severity: " ++ unpack t
+        "error"   -> pure Error
+        _         -> fail $ "Unkown severity: " ++ unpack t

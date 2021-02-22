@@ -6,14 +6,10 @@ module Logger.Console
   , parseConfig
   ) where
 
-import Data.Aeson
-  ( FromJSON(parseJSON)
-  , (.:?)
-  , eitherDecodeFileStrict
-  , withObject
-  )
-import Data.Maybe (fromMaybe)
-import Logger (Handle(Handle), Severity(Debug))
+import           Data.Aeson (FromJSON (parseJSON), eitherDecodeFileStrict,
+                             withObject, (.:?))
+import           Data.Maybe (fromMaybe)
+import           Logger     (Handle (Handle), Severity (Debug))
 
 newtype Config =
   Config
