@@ -25,6 +25,7 @@ dependencies:
 - text
 - aeson
 - http-client
+- http-types
 
 library:
   source-dirs: src

@@ -1,4 +1,6 @@
-module Bot.Telegram.HandleMessage where
+module Bot.Telegram.HandleMessage
+  ( Handle(..)
+  ) where
 
 import           Bot.Telegram.Updates (Message)
 

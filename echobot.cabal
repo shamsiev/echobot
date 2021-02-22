@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: de29bb8e44dc6c8600f15d59108862d56f95e79024805ef30ecefda6fa4a6f0d
+-- hash: 62078b80d46b4864cbabef7a4a8a4fdaa1ef5892a34e925dd38344647192abaf
 
 name:           echobot
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Bot.Telegram
       Bot.Telegram.Config
       Bot.Telegram.HandleMessage
+      Bot.Telegram.HandleMessage.Text
       Bot.Telegram.Updates
       Bot.VK
       Bot.VK.Config
@@ -45,6 +46,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , http-client
+    , http-types
     , text
   default-language: Haskell2010
 
@@ -61,6 +63,7 @@ executable echobot-exe
     , bytestring
     , echobot
     , http-client
+    , http-types
     , text
   default-language: Haskell2010
 
@@ -78,5 +81,6 @@ test-suite echobot-test
     , bytestring
     , echobot
     , http-client
+    , http-types
     , text
   default-language: Haskell2010
