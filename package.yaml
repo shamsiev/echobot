@@ -1,0 +1,52 @@
+name:                echobot
+version:             0.1.0.0
+github:              "shamsiev/echobot"
+license:             BSD3
+author:              "Danil Shamsiev"
+maintainer:          "veismahs@oulook.com"
+copyright:           "2021 Danil Shamsiev"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/shamsiev/echobot#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+- text
+- aeson
+- http-client
+
+library:
+  source-dirs: src
+
+executables:
+  echobot-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - echobot
+
+tests:
+  echobot-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - echobot
