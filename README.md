@@ -40,9 +40,8 @@
 - [x] Answer to /repeat command
 - [x] Set repeat counters for individual users with /repeat command
 - [x] Echo text messages
-- [ ] Echo animation? messages
 - [ ] Echo audio messages
-- [ ] Echo document? messages
+- [ ] Echo document messages
 - [ ] Echo photo messages
 - [ ] Echo sticker messages
 - [ ] Echo video messages
@@ -50,7 +49,6 @@
 - [ ] Echo voice messages
 - [ ] Echo contact messages
 - [ ] Echo dice messages
-- [ ] Echo game? messages
 - [ ] Echo poll messages
 - [ ] Echo venue messages
 - [ ] Echo location messages
