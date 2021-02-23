@@ -70,54 +70,54 @@ instance FromJSON User where
 
 data Message =
   Message
-    { mMessage_id            :: Int
-    , mFrom                  :: Maybe User
+    { mMessage_id           :: Int
+    , mFrom                 :: Maybe User
   -- , mSenderChat :: Maybe Chat
-    , mDate                  :: Int
-    -- , mChat :: Maybe Chat
-    , mForwardFrom           :: Maybe User
+    , mDate                 :: Int
+  -- , mChat :: Maybe Chat
+    , mForwardFrom          :: Maybe User
   -- , mForwardFromChat :: Maybe Chat
-    , mForwardFromMessageId  :: Maybe Int
-    , mForwardSignature      :: Maybe Text
-    , mForwardSenderName     :: Maybe Text
-    , mForwardDate           :: Maybe Int
-    , mReplyToMessage        :: Maybe Message
-    , mViaBot                :: Maybe User
-    , mEditDate              :: Maybe Int
-    , mMediaGroupId          :: Maybe Text
-    , mAuthorSignature       :: Maybe Text
-    , mText                  :: Maybe Text
+    , mForwardFromMessageId :: Maybe Int
+    , mForwardSignature     :: Maybe Text
+    , mForwardSenderName    :: Maybe Text
+    , mForwardDate          :: Maybe Int
+    , mReplyToMessage       :: Maybe Message
+    , mViaBot               :: Maybe User
+    , mEditDate             :: Maybe Int
+    , mMediaGroupId         :: Maybe Text
+    , mAuthorSignature      :: Maybe Text
+    , mText                 :: Maybe Text
   -- , mEntities :: Maybe [MessageEntity]
   -- , mAnimation :: Maybe Animation
-    , mAudio                 :: Maybe File
-    , mDocument              :: Maybe File
-    , mPhoto                 :: Maybe [File]
-    , mSticker               :: Maybe File
-    , mVideo                 :: Maybe File
-    , mVideoNote             :: Maybe File
-    , mVoice                 :: Maybe File
-    , mCaption               :: Maybe Text
+    , mAudio                :: Maybe File
+    , mDocument             :: Maybe File
+    , mPhoto                :: Maybe [File]
+    , mSticker              :: Maybe File
+    , mVideo                :: Maybe File
+    , mVideoNote            :: Maybe File
+    , mVoice                :: Maybe File
+    , mCaption              :: Maybe Text
   -- , mCaptionEntities :: Maybe [MessageEntity]
-    , mContact               :: Maybe Contact
+    , mContact              :: Maybe Contact
   -- , mDice :: Maybe Dice
   -- , mGame :: Maybe Game
-  -- , mPoll :: Maybe Poll
+    , mPoll                 :: Maybe Poll
   -- , mVenue :: Maybe Venue
   -- , mLocation :: Maybe Location
-    , mNewChatMembers        :: Maybe [User]
-    , mLeftChatMember        :: Maybe User
-    , mNewChatTitle          :: Maybe Text
+  -- , mNewChatMembers        :: Maybe [User]
+  -- , mLeftChatMember        :: Maybe User
+  -- , mNewChatTitle          :: Maybe Text
   -- , mNewChatPhoto :: Maybe [PhotoSize]
-    , mDeleteChatPhoto       :: Maybe Bool
-    , mGroupChatCreated      :: Maybe Bool
-    , mSupergroupChatCreated :: Maybe Bool
-    , mChannelChatCreated    :: Maybe Bool
-    , mMigrateToChatId       :: Maybe Int
-    , mMigrateFromChatId     :: Maybe Int
-    , mPinnedMessage         :: Maybe Message
+  -- , mDeleteChatPhoto       :: Maybe Bool
+  -- , mGroupChatCreated      :: Maybe Bool
+  -- , mSupergroupChatCreated :: Maybe Bool
+  -- , mChannelChatCreated    :: Maybe Bool
+  -- , mMigrateToChatId       :: Maybe Int
+  -- , mMigrateFromChatId     :: Maybe Int
+  -- , mPinnedMessage         :: Maybe Message
   -- , mInvoice :: Maybe Invoice
   -- , mSuccessfulPayment :: Maybe SuccessfulPayment
-    , mConnectedWebsite      :: Maybe Text
+  -- , mConnectedWebsite      :: Maybe Text
   -- , mPassportData :: Maybe PassportData
   -- , mProximityAlertTriggered :: Maybe ProximityAlertTriggered
   -- , mReplyMarkUp :: Maybe InlineKeyboardMarkup
@@ -148,17 +148,7 @@ instance FromJSON Message where
       o .:? "voice" <*>
       o .:? "caption" <*>
       o .:? "contact" <*>
-      o .:? "new_chat_members" <*>
-      o .:? "left_chat_member" <*>
-      o .:? "new_chat_title" <*>
-      o .:? "delete_chat_photo" <*>
-      o .:? "group_chat_created" <*>
-      o .:? "supergroup_chat_created" <*>
-      o .:? "channel_chat_created" <*>
-      o .:? "migrate_to_chat_id" <*>
-      o .:? "migrate_from_chat_id" <*>
-      o .:? "pinned_message" <*>
-      o .:? "connected_website"
+      o .:? "poll"
 
 newtype File =
   File
@@ -172,3 +162,57 @@ data Contact =
     , first_name   :: Text
     }
   deriving (Show, Generic, FromJSON)
+
+data Poll =
+  Poll
+    { pQuestion              :: Text
+    , pOptions               :: [PollOption]
+    , pIsClosed              :: Bool
+    , pIsAnonymous           :: Bool
+    , pType                  :: Text
+    , pAllowsMultipleAnswers :: Bool
+    , pCorrectOptionId       :: Maybe Int
+    , pExplanation           :: Maybe Text
+    , pExplanationEntities   :: Maybe [MessageEntity]
+    , pOpenPeriod            :: Maybe Int
+    , pCloseDate             :: Maybe Int
+    }
+  deriving (Show)
+
+instance FromJSON Poll where
+  parseJSON =
+    withObject "FromJSON Bot.Telegram.Updates.Poll" $ \o ->
+      Poll <$> o .: "question" <*> o .: "options" <*> o .: "is_closed" <*>
+      o .: "is_anonymous" <*>
+      o .: "type" <*>
+      o .: "allows_multiple_answers" <*>
+      o .:? "correct_option_id" <*>
+      o .:? "explanation" <*>
+      o .:? "explanation_entities" <*>
+      o .:? "open_period" <*>
+      o .:? "close_date"
+
+newtype PollOption =
+  PollOption
+    { text :: Text
+    }
+  deriving (Show, Generic, FromJSON)
+
+data MessageEntity =
+  MessageEntity
+    { meType     :: Text
+    , meOffset   :: Int
+    , meLength   :: Int
+    , meUrl      :: Maybe Text
+    , meUser     :: Maybe User
+    , meLanguage :: Maybe Text
+    }
+  deriving (Show)
+
+instance FromJSON MessageEntity where
+  parseJSON =
+    withObject "FromJSON Bot.Telegram.Updates.MessageEntity" $ \o ->
+      MessageEntity <$> o .: "type" <*> o .: "offset" <*> o .: "length" <*>
+      o .: "url" <*>
+      o .: "user" <*>
+      o .: "language"
