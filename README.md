@@ -51,7 +51,7 @@
 - [x] Echo poll messages
 - [x] Echo venue messages
 - [x] Echo location messages
-- [ ] Refactor this trash
+- [ ] Refactor
 - [ ] Write tests
 ##### Write VK instance:
 - [ ] Just do something...
