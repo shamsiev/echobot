@@ -21,7 +21,8 @@ import           Data.Aeson                        (KeyValue ((.=)),
                                                     encode, object)
 import           Data.IORef                        (IORef, newIORef, readIORef,
                                                     writeIORef)
-import           Data.Maybe                        (isJust)
+import qualified Data.Map.Strict                   as M
+import           Data.Maybe                        (fromJust, fromMaybe, isJust)
 import           Data.Text                         (Text, unpack)
 import qualified Logger
 import           Network.Wreq                      (defaults, header, postWith,
@@ -32,16 +33,16 @@ type Token = Text
 
 type Offset = Int
 
-type Coutner = Int
+type Counter = Int
 
 type ChatId = Int
 
-type Counters = [(ChatId, Coutner)]
+type Counters = M.Map ChatId Counter
 
 new :: Config -> Logger.Handle -> IO Handle
 new config hLogger = do
   offset <- newIORef 0
-  counters <- newIORef []
+  counters <- newIORef M.empty
   return $ Handle $ forever $ telegram config hLogger offset counters
 
 telegram :: Config -> Logger.Handle -> IORef Offset -> IORef Counters -> IO ()
@@ -62,12 +63,10 @@ handleUpdates ::
   -> IO (IORef Counters)
 handleUpdates _ _ countersRef [] = return countersRef
 handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
-  _ <-
-    (\h -> HM.handle h (cToken config) msg) =<<
-    HMHelp.new hLogger (cHelpMessage config)
-  _ <-
-    (\h -> HM.handle h (cToken config) msg) =<<
-    HMRepeat.new hLogger (cRepeatMessage config)
+  counters <- readIORef countersRef
+  _ <- (`HM.handle` msg) =<< HMHelp.new config hLogger
+  _ <- (`HM.handle` msg) =<< HMRepeat.new config hLogger
+  _ <- (`HM.handle` msg) =<< HMText.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   handleUpdates config hLogger countersRef us

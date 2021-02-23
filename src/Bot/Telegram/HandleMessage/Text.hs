@@ -5,25 +5,39 @@ module Bot.Telegram.HandleMessage.Text
   ( new
   ) where
 
-import           Bot.Telegram.HandleMessage (Handle (Handle), Token)
+import           Bot.Telegram.Config        (Config (cRepeatCount, cToken))
+import           Bot.Telegram.HandleMessage (Handle (Handle))
 import           Bot.Telegram.Updates       (Message (mFrom, mText), User (uId))
 import           Control.Lens               ((&), (.~), (^.))
+import           Control.Monad              (replicateM_)
 import           Data.Aeson                 (KeyValue ((.=)), object)
-import           Data.Maybe                 (fromJust)
+import qualified Data.Map.Strict            as M
+import           Data.Maybe                 (fromJust, fromMaybe)
 import           Data.Text                  (unpack)
 import qualified Logger
 import           Network.Wreq               (defaults, header, postWith,
                                              responseStatus, statusCode)
 
-new :: Logger.Handle -> IO Handle
-new hLogger = return $ Handle (sendTextMessage hLogger)
+type ChatId = Int
 
-sendTextMessage :: Logger.Handle -> Token -> Message -> IO ()
-sendTextMessage _ _ (mFrom -> Nothing) = return ()
-sendTextMessage _ _ (mText -> Nothing) = return ()
-sendTextMessage _ _ (mText -> Just "/help") = return ()
-sendTextMessage _ _ (mText -> Just "/repeat") = return ()
-sendTextMessage hLogger token message = do
+type Counter = Int
+
+type Counters = M.Map ChatId Counter
+
+new :: Config -> Logger.Handle -> Counters -> IO Handle
+new config hLogger counters =
+  return $ Handle (sendTextMessage config hLogger counters)
+
+sendTextMessage :: Config -> Logger.Handle -> Counters -> Message -> IO ()
+sendTextMessage _ _ _ (mFrom -> Nothing) = return ()
+sendTextMessage _ _ _ (mText -> Nothing) = return ()
+sendTextMessage _ _ _ (mText -> Just "/help") = return ()
+sendTextMessage _ _ _ (mText -> Just "/repeat") = return ()
+sendTextMessage config hLogger counters message = do
+  let counter =
+        fromMaybe
+          (cRepeatCount config)
+          (M.lookup (uId $ fromJust $ mFrom message) counters)
   let requestObject =
         object
           [ "chat_id" .= (uId . fromJust . mFrom) message
@@ -31,8 +45,11 @@ sendTextMessage hLogger token message = do
           ]
   let options =
         defaults & header "Content-Type" .~ ["application/json; charset=utf-8"]
-  let address = "https://api.telegram.org/bot" ++ unpack token ++ "/sendMessage"
-  response <- postWith options address requestObject
-  case response ^. responseStatus . statusCode of
-    200  -> Logger.info hLogger "200 - sendMessage"
-    code -> Logger.warning hLogger (show code ++ " - sendMessage")
+  let address =
+        "https://api.telegram.org/bot" ++ unpack (cToken config) ++
+        "/sendMessage"
+  replicateM_ counter $ do
+    response <- postWith options address requestObject
+    case response ^. responseStatus . statusCode of
+      200  -> Logger.info hLogger "200 - sendMessage"
+      code -> Logger.warning hLogger (show code ++ " - sendMessage")

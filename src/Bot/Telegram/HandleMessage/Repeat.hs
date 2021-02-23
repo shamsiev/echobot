@@ -3,10 +3,10 @@
 
 module Bot.Telegram.HandleMessage.Repeat
   ( new
-  , RepeatMessage
   ) where
 
-import           Bot.Telegram.HandleMessage (Handle (Handle), Token)
+import           Bot.Telegram.Config        (Config (cRepeatMessage, cToken))
+import           Bot.Telegram.HandleMessage (Handle (Handle))
 import           Bot.Telegram.Updates       (Message (mFrom, mText), User (uId))
 import           Control.Lens               ((&), (.~), (^.))
 import           Data.Aeson                 (KeyValue ((.=)), ToJSON (toJSON),
@@ -17,29 +17,28 @@ import qualified Logger
 import           Network.Wreq               (defaults, header, postWith,
                                              responseStatus, statusCode)
 
-type RepeatMessage = Text
+new :: Config -> Logger.Handle -> IO Handle
+new config hLogger = return $ Handle (sendRepeatMessage config hLogger)
 
-new :: Logger.Handle -> RepeatMessage -> IO Handle
-new hLogger repeatMessage =
-  return $ Handle (sendRepeatMessage hLogger repeatMessage)
-
-sendRepeatMessage :: Logger.Handle -> RepeatMessage -> Token -> Message -> IO ()
-sendRepeatMessage _ _ _ (mFrom -> Nothing) = return ()
-sendRepeatMessage hLogger repeatMessage token message@(mText -> Just "/repeat") = do
+sendRepeatMessage :: Config -> Logger.Handle -> Message -> IO ()
+sendRepeatMessage _ _ (mFrom -> Nothing) = return ()
+sendRepeatMessage config hLogger message@(mText -> Just "/repeat") = do
   let requestObject =
         object
           [ "chat_id" .= (uId . fromJust . mFrom) message
-          , "text" .= repeatMessage
+          , "text" .= cRepeatMessage config
           , "reply_markup" .= keyboard
           ]
   let options =
         defaults & header "Content-Type" .~ ["application/json; charset=utf-8"]
-  let address = "https://api.telegram.org/bot" ++ unpack token ++ "/sendMessage"
+  let address =
+        "https://api.telegram.org/bot" ++ unpack (cToken config) ++
+        "/sendMessage"
   response <- postWith options address requestObject
   case response ^. responseStatus . statusCode of
     200  -> Logger.info hLogger "200 - sendMessage"
     code -> Logger.warning hLogger (show code ++ " - sendMessage")
-sendRepeatMessage _ _ _ _ = return ()
+sendRepeatMessage _ _ _ = return ()
 
 keyboard :: Keyboard
 keyboard =
