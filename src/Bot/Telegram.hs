@@ -7,13 +7,14 @@ module Bot.Telegram
   ) where
 
 import           Bot                               (Handle (Handle))
-import           Bot.Telegram.Config
+import           Bot.Telegram.Config               (Config (cToken))
 import qualified Bot.Telegram.HandleCallbackQuery  as HCQ
 import qualified Bot.Telegram.HandleMessage        as HM
 import qualified Bot.Telegram.HandleMessage.Help   as HMHelp
 import qualified Bot.Telegram.HandleMessage.Repeat as HMRepeat
 import qualified Bot.Telegram.HandleMessage.Text   as HMText
-import           Bot.Telegram.Updates
+import           Bot.Telegram.Updates              (Update (callback_query, message, update_id),
+                                                    Updates (result))
 import           Control.Lens                      ((&), (.~), (^.))
 import           Control.Monad                     (forever)
 import           Data.Aeson                        (KeyValue ((.=)),
