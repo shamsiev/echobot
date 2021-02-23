@@ -89,7 +89,7 @@ data Message =
     , mText                  :: Maybe Text
   -- , mEntities :: Maybe [MessageEntity]
   -- , mAnimation :: Maybe Animation
-  -- , mAudio :: Maybe Audio
+    , mAudio                 :: Maybe File
   -- , mDocument :: Maybe Docuemnt
   -- , mPhoto :: Maybe [PhotoSize]
   -- , mSticker :: Maybe Sticker
@@ -139,6 +139,7 @@ instance FromJSON Message where
       o .:? "media_group_id" <*>
       o .:? "author_signature" <*>
       o .:? "text" <*>
+      o .:? "audio" <*>
       o .:? "caption" <*>
       o .:? "new_chat_members" <*>
       o .:? "left_chat_member" <*>
@@ -151,3 +152,9 @@ instance FromJSON Message where
       o .:? "migrate_from_chat_id" <*>
       o .:? "pinned_message" <*>
       o .:? "connected_website"
+
+newtype File =
+  File
+    { file_id :: Text
+    }
+  deriving (Show, Generic, FromJSON)

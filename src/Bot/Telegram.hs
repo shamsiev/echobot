@@ -10,6 +10,7 @@ import           Bot                               (Handle (Handle))
 import           Bot.Telegram.Config               (Config (cToken))
 import qualified Bot.Telegram.HandleCallbackQuery  as HCQ
 import qualified Bot.Telegram.HandleMessage        as HM
+import qualified Bot.Telegram.HandleMessage.Audio  as HMAudio
 import qualified Bot.Telegram.HandleMessage.Help   as HMHelp
 import qualified Bot.Telegram.HandleMessage.Repeat as HMRepeat
 import qualified Bot.Telegram.HandleMessage.Text   as HMText
@@ -69,6 +70,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMHelp.new config hLogger
   _ <- (`HM.handle` msg) =<< HMRepeat.new config hLogger
   _ <- (`HM.handle` msg) =<< HMText.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMAudio.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   counters <- readIORef countersRef

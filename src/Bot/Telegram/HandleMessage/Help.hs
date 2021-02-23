@@ -17,11 +17,11 @@ import           Network.Wreq               (defaults, header, postWith,
                                              responseStatus, statusCode)
 
 new :: Config -> Logger.Handle -> IO Handle
-new config hLogger = return $ Handle (sendHelpMessage config hLogger)
+new config hLogger = return $ Handle (sendMessage config hLogger)
 
-sendHelpMessage :: Config -> Logger.Handle -> Message -> IO ()
-sendHelpMessage _ _ (mFrom -> Nothing) = return ()
-sendHelpMessage config hLogger message@(mText -> Just "/help") = do
+sendMessage :: Config -> Logger.Handle -> Message -> IO ()
+sendMessage _ _ (mFrom -> Nothing) = return ()
+sendMessage config hLogger message@(mText -> Just "/help") = do
   let requestObject =
         object
           [ "chat_id" .= (uId . fromJust . mFrom) message
@@ -36,4 +36,4 @@ sendHelpMessage config hLogger message@(mText -> Just "/help") = do
   case response ^. responseStatus . statusCode of
     200  -> Logger.info hLogger "200 - sendMessage"
     code -> Logger.warning hLogger (show code ++ " - sendMessage")
-sendHelpMessage _ _ _ = return ()
+sendMessage _ _ _ = return ()

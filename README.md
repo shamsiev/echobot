@@ -40,7 +40,7 @@
 - [x] Answer to /repeat command
 - [x] Set repeat counters for individual users with /repeat command
 - [x] Echo text messages
-- [ ] Echo audio messages
+- [x] Echo audio messages
 - [ ] Echo document messages
 - [ ] Echo photo messages
 - [ ] Echo sticker messages

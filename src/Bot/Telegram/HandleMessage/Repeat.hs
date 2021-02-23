@@ -18,11 +18,11 @@ import           Network.Wreq               (defaults, header, postWith,
                                              responseStatus, statusCode)
 
 new :: Config -> Logger.Handle -> IO Handle
-new config hLogger = return $ Handle (sendRepeatMessage config hLogger)
+new config hLogger = return $ Handle (sendMessage config hLogger)
 
-sendRepeatMessage :: Config -> Logger.Handle -> Message -> IO ()
-sendRepeatMessage _ _ (mFrom -> Nothing) = return ()
-sendRepeatMessage config hLogger message@(mText -> Just "/repeat") = do
+sendMessage :: Config -> Logger.Handle -> Message -> IO ()
+sendMessage _ _ (mFrom -> Nothing) = return ()
+sendMessage config hLogger message@(mText -> Just "/repeat") = do
   let requestObject =
         object
           [ "chat_id" .= (uId . fromJust . mFrom) message
@@ -38,7 +38,7 @@ sendRepeatMessage config hLogger message@(mText -> Just "/repeat") = do
   case response ^. responseStatus . statusCode of
     200  -> Logger.info hLogger "200 - sendMessage"
     code -> Logger.warning hLogger (show code ++ " - sendMessage")
-sendRepeatMessage _ _ _ = return ()
+sendMessage _ _ _ = return ()
 
 keyboard :: Keyboard
 keyboard =
