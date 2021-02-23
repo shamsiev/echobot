@@ -92,7 +92,7 @@ data Message =
     , mAudio                 :: Maybe File
     , mDocument              :: Maybe File
     , mPhoto                 :: Maybe [File]
-  -- , mSticker :: Maybe Sticker
+    , mSticker               :: Maybe File
   -- , mVideo :: Maybe Video
   -- , mVideoNote :: Maybe VideoNote
   -- , mVoice :: Maybe Voice
@@ -142,6 +142,7 @@ instance FromJSON Message where
       o .:? "audio" <*>
       o .:? "document" <*>
       o .:? "photo" <*>
+      o .:? "sticker" <*>
       o .:? "caption" <*>
       o .:? "new_chat_members" <*>
       o .:? "left_chat_member" <*>

@@ -43,7 +43,7 @@
 - [x] Echo audio messages
 - [x] Echo document messages
 - [x] Echo photo messages
-- [ ] Echo sticker messages
+- [x] Echo sticker messages
 - [ ] Echo video messages
 - [ ] Echo video note messages
 - [ ] Echo voice messages
