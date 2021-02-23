@@ -17,6 +17,7 @@ import qualified Bot.Telegram.HandleMessage.Photo    as HMPhoto
 import qualified Bot.Telegram.HandleMessage.Repeat   as HMRepeat
 import qualified Bot.Telegram.HandleMessage.Sticker  as HMSticker
 import qualified Bot.Telegram.HandleMessage.Text     as HMText
+import qualified Bot.Telegram.HandleMessage.Video    as HMVideo
 import           Bot.Telegram.Updates                (Update (callback_query, message, update_id),
                                                       Updates (result))
 import           Control.Lens                        ((&), (.~), (^.))
@@ -79,6 +80,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMDocument.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMPhoto.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMSticker.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMVideo.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   counters <- readIORef countersRef
