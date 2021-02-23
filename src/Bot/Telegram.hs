@@ -6,31 +6,34 @@ module Bot.Telegram
   , parseConfig
   ) where
 
-import           Bot                               (Handle (Handle))
-import           Bot.Telegram.Config               (Config (cToken))
-import qualified Bot.Telegram.HandleCallbackQuery  as HCQ
-import qualified Bot.Telegram.HandleMessage        as HM
-import qualified Bot.Telegram.HandleMessage.Audio  as HMAudio
-import qualified Bot.Telegram.HandleMessage.Help   as HMHelp
-import qualified Bot.Telegram.HandleMessage.Repeat as HMRepeat
-import qualified Bot.Telegram.HandleMessage.Text   as HMText
-import           Bot.Telegram.Updates              (Update (callback_query, message, update_id),
-                                                    Updates (result))
-import           Control.Lens                      ((&), (.~), (^.))
-import           Control.Monad                     (forever)
-import           Data.Aeson                        (KeyValue ((.=)),
-                                                    eitherDecode,
-                                                    eitherDecodeFileStrict,
-                                                    encode, object)
-import           Data.IORef                        (IORef, newIORef, readIORef,
-                                                    writeIORef)
-import qualified Data.Map.Strict                   as M
-import           Data.Maybe                        (fromJust, fromMaybe, isJust)
-import           Data.Text                         (Text, unpack)
+import           Bot                                 (Handle (Handle))
+import           Bot.Telegram.Config                 (Config (cToken))
+import qualified Bot.Telegram.HandleCallbackQuery    as HCQ
+import qualified Bot.Telegram.HandleMessage          as HM
+import qualified Bot.Telegram.HandleMessage.Audio    as HMAudio
+import qualified Bot.Telegram.HandleMessage.Document as HMDocument
+import qualified Bot.Telegram.HandleMessage.Help     as HMHelp
+import qualified Bot.Telegram.HandleMessage.Repeat   as HMRepeat
+import qualified Bot.Telegram.HandleMessage.Text     as HMText
+import           Bot.Telegram.Updates                (Update (callback_query, message, update_id),
+                                                      Updates (result))
+import           Control.Lens                        ((&), (.~), (^.))
+import           Control.Monad                       (forever)
+import           Data.Aeson                          (KeyValue ((.=)),
+                                                      eitherDecode,
+                                                      eitherDecodeFileStrict,
+                                                      encode, object)
+import           Data.IORef                          (IORef, newIORef,
+                                                      readIORef, writeIORef)
+import qualified Data.Map.Strict                     as M
+import           Data.Maybe                          (fromJust, fromMaybe,
+                                                      isJust)
+import           Data.Text                           (Text, unpack)
 import qualified Logger
-import           Network.Wreq                      (defaults, header, postWith,
-                                                    responseBody,
-                                                    responseStatus, statusCode)
+import           Network.Wreq                        (defaults, header,
+                                                      postWith, responseBody,
+                                                      responseStatus,
+                                                      statusCode)
 
 type Token = Text
 
@@ -71,6 +74,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMRepeat.new config hLogger
   _ <- (`HM.handle` msg) =<< HMText.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMAudio.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMDocument.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   counters <- readIORef countersRef

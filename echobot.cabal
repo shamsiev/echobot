@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fdb988d92abe98a1a8b94de56b243fba897b867944514a12aa19d398a0d74f2e
+-- hash: 8dce766558529b580130fbcd9aa8a16f721736d16d7d3c61a46a6250f3889e27
 
 name:           echobot
 version:        0.1.0.0
@@ -33,6 +33,7 @@ library
       Bot.Telegram.HandleCallbackQuery
       Bot.Telegram.HandleMessage
       Bot.Telegram.HandleMessage.Audio
+      Bot.Telegram.HandleMessage.Document
       Bot.Telegram.HandleMessage.Help
       Bot.Telegram.HandleMessage.Repeat
       Bot.Telegram.HandleMessage.Text

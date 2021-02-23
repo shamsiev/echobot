@@ -41,7 +41,7 @@
 - [x] Set repeat counters for individual users with /repeat command
 - [x] Echo text messages
 - [x] Echo audio messages
-- [ ] Echo document messages
+- [x] Echo document messages
 - [ ] Echo photo messages
 - [ ] Echo sticker messages
 - [ ] Echo video messages

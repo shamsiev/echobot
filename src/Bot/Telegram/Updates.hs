@@ -90,7 +90,7 @@ data Message =
   -- , mEntities :: Maybe [MessageEntity]
   -- , mAnimation :: Maybe Animation
     , mAudio                 :: Maybe File
-  -- , mDocument :: Maybe Docuemnt
+    , mDocument              :: Maybe File
   -- , mPhoto :: Maybe [PhotoSize]
   -- , mSticker :: Maybe Sticker
   -- , mVideo :: Maybe Video
@@ -140,6 +140,7 @@ instance FromJSON Message where
       o .:? "author_signature" <*>
       o .:? "text" <*>
       o .:? "audio" <*>
+      o .:? "document" <*>
       o .:? "caption" <*>
       o .:? "new_chat_members" <*>
       o .:? "left_chat_member" <*>
