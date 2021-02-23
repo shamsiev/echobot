@@ -48,7 +48,6 @@
 - [x] Echo video note messages
 - [x] Echo voice messages
 - [x] Echo contact messages
-- [ ] Echo dice messages
 - [ ] Echo poll messages
 - [ ] Echo venue messages
 - [ ] Echo location messages
