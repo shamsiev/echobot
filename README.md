@@ -48,7 +48,7 @@
 - [x] Echo video note messages
 - [x] Echo voice messages
 - [x] Echo contact messages
-- [ ] Echo poll messages
+- [x] Echo poll messages
 - [ ] Echo venue messages
 - [ ] Echo location messages
 - [ ] Refactor this trash

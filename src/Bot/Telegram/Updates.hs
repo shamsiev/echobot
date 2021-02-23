@@ -4,7 +4,7 @@
 
 module Bot.Telegram.Updates where
 
-import           Data.Aeson   (FromJSON (parseJSON), withObject, (.:), (.:?))
+import           Data.Aeson
 import           Data.Text    (Text)
 import           GHC.Generics (Generic)
 
@@ -67,6 +67,20 @@ instance FromJSON User where
       o .:? "can_join_groups" <*>
       o .:? "can_read_all_group_messages" <*>
       o .:? "supports_inline_queries"
+
+instance ToJSON User where
+  toJSON o =
+    object
+      [ "id" .= uId o
+      , "is_bot" .= uIsBot o
+      , "first_name" .= uFirstName o
+      , "last_name" .= uLastName o
+      , "username" .= uUsername o
+      , "language_code" .= uLanguageCode o
+      , "can_join_groups" .= uCanJoinGroups o
+      , "can_read_all_group_messages" .= uCanReadAllGroupMessages o
+      , "supports_inline_queries" .= uSupportsInlineQueries o
+      ]
 
 data Message =
   Message
@@ -216,3 +230,14 @@ instance FromJSON MessageEntity where
       o .: "url" <*>
       o .: "user" <*>
       o .: "language"
+
+instance ToJSON MessageEntity where
+  toJSON o =
+    object
+      [ "type" .= meType o
+      , "offset" .= meOffset o
+      , "length" .= meLength o
+      , "url" .= meUrl o
+      , "user" .= meUser o
+      , "language" .= meLanguage o
+      ]
