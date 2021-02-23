@@ -8,6 +8,7 @@ module Bot.Telegram
 
 import           Bot                               (Handle (Handle))
 import           Bot.Telegram.Config
+import qualified Bot.Telegram.HandleCallbackQuery  as HCQ
 import qualified Bot.Telegram.HandleMessage        as HM
 import qualified Bot.Telegram.HandleMessage.Help   as HMHelp
 import qualified Bot.Telegram.HandleMessage.Repeat as HMRepeat
@@ -33,9 +34,9 @@ type Token = Text
 
 type Offset = Int
 
-type Counter = Int
-
 type ChatId = Int
+
+type Counter = Int
 
 type Counters = M.Map ChatId Counter
 
@@ -69,6 +70,9 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMText.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
+  counters <- readIORef countersRef
+  newCounters <- (`HCQ.handle` cq) =<< HCQ.new config hLogger counters
+  writeIORef countersRef newCounters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef (_:us) =
   handleUpdates config hLogger countersRef us

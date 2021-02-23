@@ -37,11 +37,11 @@ data CallbackQuery =
 instance FromJSON CallbackQuery where
   parseJSON =
     withObject "FromJSON Bot.Telegram.Updates.CallbackQuery" $ \o ->
-      CallbackQuery <$> o .: "id" <*> o .: "from" <*> o .: "message" <*>
-      o .: "inline_message_id" <*>
+      CallbackQuery <$> o .: "id" <*> o .: "from" <*> o .:? "message" <*>
+      o .:? "inline_message_id" <*>
       o .: "chat_instance" <*>
-      o .: "data" <*>
-      o .: "game_short_name"
+      o .:? "data" <*>
+      o .:? "game_short_name"
 
 data User =
   User
