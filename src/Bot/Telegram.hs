@@ -14,6 +14,7 @@ import qualified Bot.Telegram.HandleMessage.Audio     as HMAudio
 import qualified Bot.Telegram.HandleMessage.Contact   as HMContact
 import qualified Bot.Telegram.HandleMessage.Document  as HMDocument
 import qualified Bot.Telegram.HandleMessage.Help      as HMHelp
+import qualified Bot.Telegram.HandleMessage.Location  as HMLocation
 import qualified Bot.Telegram.HandleMessage.Photo     as HMPhoto
 import qualified Bot.Telegram.HandleMessage.Poll      as HMPoll
 import qualified Bot.Telegram.HandleMessage.Repeat    as HMRepeat
@@ -89,6 +90,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMVoice.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMContact.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMPoll.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMLocation.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   counters <- readIORef countersRef

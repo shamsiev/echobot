@@ -50,7 +50,7 @@
 - [x] Echo contact messages
 - [x] Echo poll messages
 - [ ] Echo venue messages
-- [ ] Echo location messages
+- [x] Echo location messages
 - [ ] Refactor this trash
 - [ ] Write tests
 ##### Write VK instance:

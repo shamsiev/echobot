@@ -116,8 +116,8 @@ data Message =
   -- , mDice :: Maybe Dice
   -- , mGame :: Maybe Game
     , mPoll                 :: Maybe Poll
-  -- , mVenue :: Maybe Venue
-  -- , mLocation :: Maybe Location
+  -- , mVenue                :: Maybe Venue
+    , mLocation             :: Maybe Location
   -- , mNewChatMembers        :: Maybe [User]
   -- , mLeftChatMember        :: Maybe User
   -- , mNewChatTitle          :: Maybe Text
@@ -162,7 +162,8 @@ instance FromJSON Message where
       o .:? "voice" <*>
       o .:? "caption" <*>
       o .:? "contact" <*>
-      o .:? "poll"
+      o .:? "poll" <*>
+      o .:? "location"
 
 newtype File =
   File
@@ -241,3 +242,23 @@ instance ToJSON MessageEntity where
       , "user" .= meUser o
       , "language" .= meLanguage o
       ]
+
+data Location =
+  Location
+    { longitude              :: Float
+    , latitude               :: Float
+    , horizontal_accuracy    :: Maybe Float
+    , live_period            :: Maybe Int
+    , heading                :: Maybe Int
+    , proximity_alert_radius :: Maybe Int
+    }
+  deriving (Show)
+
+instance FromJSON Location where
+  parseJSON =
+    withObject "FromJSON Bot.Telegram.Updates.Location" $ \o ->
+      Location <$> o .: "longitude" <*> o .: "latitude" <*>
+      o .:? "horizontal_accuracy" <*>
+      o .:? "live_period" <*>
+      o .:? "heading" <*>
+      o .:? "proximity_alert_radius"
