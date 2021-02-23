@@ -46,7 +46,7 @@
 - [x] Echo sticker messages
 - [x] Echo video messages
 - [x] Echo video note messages
-- [ ] Echo voice messages
+- [x] Echo voice messages
 - [ ] Echo contact messages
 - [ ] Echo dice messages
 - [ ] Echo poll messages
