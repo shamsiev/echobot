@@ -94,7 +94,7 @@ data Message =
     , mPhoto                 :: Maybe [File]
     , mSticker               :: Maybe File
     , mVideo                 :: Maybe File
-  -- , mVideoNote :: Maybe VideoNote
+    , mVideoNote             :: Maybe File
   -- , mVoice :: Maybe Voice
     , mCaption               :: Maybe Text
   -- , mCaptionEntities :: Maybe [MessageEntity]
@@ -144,6 +144,7 @@ instance FromJSON Message where
       o .:? "photo" <*>
       o .:? "sticker" <*>
       o .:? "video" <*>
+      o .:? "video_note" <*>
       o .:? "caption" <*>
       o .:? "new_chat_members" <*>
       o .:? "left_chat_member" <*>

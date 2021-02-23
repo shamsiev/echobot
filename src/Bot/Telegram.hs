@@ -6,37 +6,38 @@ module Bot.Telegram
   , parseConfig
   ) where
 
-import           Bot                                 (Handle (Handle))
-import           Bot.Telegram.Config                 (Config (cToken))
-import qualified Bot.Telegram.HandleCallbackQuery    as HCQ
-import qualified Bot.Telegram.HandleMessage          as HM
-import qualified Bot.Telegram.HandleMessage.Audio    as HMAudio
-import qualified Bot.Telegram.HandleMessage.Document as HMDocument
-import qualified Bot.Telegram.HandleMessage.Help     as HMHelp
-import qualified Bot.Telegram.HandleMessage.Photo    as HMPhoto
-import qualified Bot.Telegram.HandleMessage.Repeat   as HMRepeat
-import qualified Bot.Telegram.HandleMessage.Sticker  as HMSticker
-import qualified Bot.Telegram.HandleMessage.Text     as HMText
-import qualified Bot.Telegram.HandleMessage.Video    as HMVideo
-import           Bot.Telegram.Updates                (Update (callback_query, message, update_id),
-                                                      Updates (result))
-import           Control.Lens                        ((&), (.~), (^.))
-import           Control.Monad                       (forever)
-import           Data.Aeson                          (KeyValue ((.=)),
-                                                      eitherDecode,
-                                                      eitherDecodeFileStrict,
-                                                      encode, object)
-import           Data.IORef                          (IORef, newIORef,
-                                                      readIORef, writeIORef)
-import qualified Data.Map.Strict                     as M
-import           Data.Maybe                          (fromJust, fromMaybe,
-                                                      isJust)
-import           Data.Text                           (Text, unpack)
+import           Bot                                  (Handle (Handle))
+import           Bot.Telegram.Config                  (Config (cToken))
+import qualified Bot.Telegram.HandleCallbackQuery     as HCQ
+import qualified Bot.Telegram.HandleMessage           as HM
+import qualified Bot.Telegram.HandleMessage.Audio     as HMAudio
+import qualified Bot.Telegram.HandleMessage.Document  as HMDocument
+import qualified Bot.Telegram.HandleMessage.Help      as HMHelp
+import qualified Bot.Telegram.HandleMessage.Photo     as HMPhoto
+import qualified Bot.Telegram.HandleMessage.Repeat    as HMRepeat
+import qualified Bot.Telegram.HandleMessage.Sticker   as HMSticker
+import qualified Bot.Telegram.HandleMessage.Text      as HMText
+import qualified Bot.Telegram.HandleMessage.Video     as HMVideo
+import qualified Bot.Telegram.HandleMessage.VideoNote as HMVideoNote
+import           Bot.Telegram.Updates                 (Update (callback_query, message, update_id),
+                                                       Updates (result))
+import           Control.Lens                         ((&), (.~), (^.))
+import           Control.Monad                        (forever)
+import           Data.Aeson                           (KeyValue ((.=)),
+                                                       eitherDecode,
+                                                       eitherDecodeFileStrict,
+                                                       encode, object)
+import           Data.IORef                           (IORef, newIORef,
+                                                       readIORef, writeIORef)
+import qualified Data.Map.Strict                      as M
+import           Data.Maybe                           (fromJust, fromMaybe,
+                                                       isJust)
+import           Data.Text                            (Text, unpack)
 import qualified Logger
-import           Network.Wreq                        (defaults, header,
-                                                      postWith, responseBody,
-                                                      responseStatus,
-                                                      statusCode)
+import           Network.Wreq                         (defaults, header,
+                                                       postWith, responseBody,
+                                                       responseStatus,
+                                                       statusCode)
 
 type Token = Text
 
@@ -81,6 +82,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMPhoto.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMSticker.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMVideo.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMVideoNote.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   counters <- readIORef countersRef
