@@ -20,6 +20,7 @@ import qualified Bot.Telegram.HandleMessage.Poll      as HMPoll
 import qualified Bot.Telegram.HandleMessage.Repeat    as HMRepeat
 import qualified Bot.Telegram.HandleMessage.Sticker   as HMSticker
 import qualified Bot.Telegram.HandleMessage.Text      as HMText
+import qualified Bot.Telegram.HandleMessage.Venue     as HMVenue
 import qualified Bot.Telegram.HandleMessage.Video     as HMVideo
 import qualified Bot.Telegram.HandleMessage.VideoNote as HMVideoNote
 import qualified Bot.Telegram.HandleMessage.Voice     as HMVoice
@@ -90,6 +91,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMVoice.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMContact.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMPoll.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMVenue.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMLocation.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do

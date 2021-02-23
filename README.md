@@ -49,7 +49,7 @@
 - [x] Echo voice messages
 - [x] Echo contact messages
 - [x] Echo poll messages
-- [ ] Echo venue messages
+- [x] Echo venue messages
 - [x] Echo location messages
 - [ ] Refactor this trash
 - [ ] Write tests

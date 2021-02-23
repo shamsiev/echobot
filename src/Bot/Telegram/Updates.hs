@@ -116,7 +116,7 @@ data Message =
   -- , mDice :: Maybe Dice
   -- , mGame :: Maybe Game
     , mPoll                 :: Maybe Poll
-  -- , mVenue                :: Maybe Venue
+    , mVenue                :: Maybe Venue
     , mLocation             :: Maybe Location
   -- , mNewChatMembers        :: Maybe [User]
   -- , mLeftChatMember        :: Maybe User
@@ -163,6 +163,7 @@ instance FromJSON Message where
       o .:? "caption" <*>
       o .:? "contact" <*>
       o .:? "poll" <*>
+      o .:? "venue" <*>
       o .:? "location"
 
 newtype File =
@@ -262,3 +263,24 @@ instance FromJSON Location where
       o .:? "live_period" <*>
       o .:? "heading" <*>
       o .:? "proximity_alert_radius"
+
+data Venue =
+  Venue
+    { location         :: Location
+    , vTitle           :: Text
+    , vAddress         :: Text
+    , vFoursquareId    :: Maybe Text
+    , vFoursquareType  :: Maybe Text
+    , vGooglePlaceId   :: Maybe Text
+    , vGooglePlaceType :: Maybe Text
+    }
+  deriving (Show)
+
+instance FromJSON Venue where
+  parseJSON =
+    withObject "FromJSON Bot.Telegram.Updates.Venue" $ \o ->
+      Venue <$> o .: "location" <*> o .: "title" <*> o .: "address" <*>
+      o .:? "foursquare_id" <*>
+      o .:? "foursquare_type" <*>
+      o .:? "google_place_id" <*>
+      o .:? "google_place_type"
