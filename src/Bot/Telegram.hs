@@ -1,22 +1,32 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Bot.Telegram
   ( new
   , parseConfig
   ) where
 
-import           Bot                  (Handle (Handle))
-import           Bot.Telegram.Config  (Config (cToken))
-import           Bot.Telegram.Updates (Updates)
-import           Control.Lens         ((&), (.~), (^.))
-import           Control.Monad        (forever)
-import           Data.Aeson           (KeyValue ((.=)), eitherDecode,
-                                       eitherDecodeFileStrict, encode, object)
-import           Data.IORef           (IORef, newIORef, readIORef)
-import           Data.Text            (Text, unpack)
+import           Bot                               (Handle (Handle))
+import           Bot.Telegram.Config
+import qualified Bot.Telegram.HandleMessage        as HM
+import qualified Bot.Telegram.HandleMessage.Help   as HMHelp
+import qualified Bot.Telegram.HandleMessage.Repeat as HMRepeat
+import qualified Bot.Telegram.HandleMessage.Text   as HMText
+import           Bot.Telegram.Updates
+import           Control.Lens                      ((&), (.~), (^.))
+import           Control.Monad                     (forever)
+import           Data.Aeson                        (KeyValue ((.=)),
+                                                    eitherDecode,
+                                                    eitherDecodeFileStrict,
+                                                    encode, object)
+import           Data.IORef                        (IORef, newIORef, readIORef,
+                                                    writeIORef)
+import           Data.Maybe                        (isJust)
+import           Data.Text                         (Text, unpack)
 import qualified Logger
-import           Network.Wreq         (defaults, header, postWith, responseBody,
-                                       responseStatus, statusCode)
+import           Network.Wreq                      (defaults, header, postWith,
+                                                    responseBody,
+                                                    responseStatus, statusCode)
 
 type Token = Text
 
@@ -38,7 +48,31 @@ telegram :: Config -> Logger.Handle -> IORef Offset -> IORef Counters -> IO ()
 telegram config hLogger offsetRef countersRef = do
   offset <- readIORef offsetRef
   updates <- getUpdates hLogger (cToken config) offset
-  print updates
+  newCountersRef <- handleUpdates config hLogger countersRef (result updates)
+  writeIORef countersRef =<< readIORef newCountersRef
+  case map update_id (result updates) of
+    []      -> writeIORef offsetRef offset
+    offsets -> writeIORef offsetRef (maximum offsets + 1)
+
+handleUpdates ::
+     Config
+  -> Logger.Handle
+  -> IORef Counters
+  -> [Update]
+  -> IO (IORef Counters)
+handleUpdates _ _ countersRef [] = return countersRef
+handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
+  _ <-
+    (\h -> HM.handle h (cToken config) msg) =<<
+    HMHelp.new hLogger (cHelpMessage config)
+  _ <-
+    (\h -> HM.handle h (cToken config) msg) =<<
+    HMRepeat.new hLogger (cRepeatMessage config)
+  handleUpdates config hLogger countersRef us
+handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
+  handleUpdates config hLogger countersRef us
+handleUpdates config hLogger countersRef (_:us) =
+  handleUpdates config hLogger countersRef us
 
 parseConfig :: FilePath -> IO Config
 parseConfig path = do

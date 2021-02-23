@@ -61,12 +61,12 @@ instance FromJSON User where
   parseJSON =
     withObject "FromJSON Bot.Telegram.Updates.User" $ \o ->
       User <$> o .: "id" <*> o .: "is_bot" <*> o .: "first_name" <*>
-      o .: "last_name" <*>
-      o .: "username" <*>
-      o .: "language_code" <*>
-      o .: "can_join_groups" <*>
-      o .: "can_read_all_group_messages" <*>
-      o .: "supports_inline_queries"
+      o .:? "last_name" <*>
+      o .:? "username" <*>
+      o .:? "language_code" <*>
+      o .:? "can_join_groups" <*>
+      o .:? "can_read_all_group_messages" <*>
+      o .:? "supports_inline_queries"
 
 data Message =
   Message
