@@ -98,7 +98,7 @@ data Message =
     , mVoice                 :: Maybe File
     , mCaption               :: Maybe Text
   -- , mCaptionEntities :: Maybe [MessageEntity]
-  -- , mContact :: Maybe Contact
+    , mContact               :: Maybe Contact
   -- , mDice :: Maybe Dice
   -- , mGame :: Maybe Game
   -- , mPoll :: Maybe Poll
@@ -147,6 +147,7 @@ instance FromJSON Message where
       o .:? "video_note" <*>
       o .:? "voice" <*>
       o .:? "caption" <*>
+      o .:? "contact" <*>
       o .:? "new_chat_members" <*>
       o .:? "left_chat_member" <*>
       o .:? "new_chat_title" <*>
@@ -162,5 +163,12 @@ instance FromJSON Message where
 newtype File =
   File
     { file_id :: Text
+    }
+  deriving (Show, Generic, FromJSON)
+
+data Contact =
+  Contact
+    { phone_number :: Text
+    , first_name   :: Text
     }
   deriving (Show, Generic, FromJSON)

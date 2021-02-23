@@ -11,6 +11,7 @@ import           Bot.Telegram.Config                  (Config (cToken))
 import qualified Bot.Telegram.HandleCallbackQuery     as HCQ
 import qualified Bot.Telegram.HandleMessage           as HM
 import qualified Bot.Telegram.HandleMessage.Audio     as HMAudio
+import qualified Bot.Telegram.HandleMessage.Contact   as HMContact
 import qualified Bot.Telegram.HandleMessage.Document  as HMDocument
 import qualified Bot.Telegram.HandleMessage.Help      as HMHelp
 import qualified Bot.Telegram.HandleMessage.Photo     as HMPhoto
@@ -85,6 +86,7 @@ handleUpdates config hLogger countersRef ((message -> Just msg):us) = do
   _ <- (`HM.handle` msg) =<< HMVideo.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMVideoNote.new config hLogger counters
   _ <- (`HM.handle` msg) =<< HMVoice.new config hLogger counters
+  _ <- (`HM.handle` msg) =<< HMContact.new config hLogger counters
   handleUpdates config hLogger countersRef us
 handleUpdates config hLogger countersRef ((callback_query -> Just cq):us) = do
   counters <- readIORef countersRef

@@ -47,7 +47,7 @@
 - [x] Echo video messages
 - [x] Echo video note messages
 - [x] Echo voice messages
-- [ ] Echo contact messages
+- [x] Echo contact messages
 - [ ] Echo dice messages
 - [ ] Echo poll messages
 - [ ] Echo venue messages
