@@ -23,9 +23,9 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - text
+- lens
 - aeson
-- http-client
-- http-types
+- wreq
 
 library:
   source-dirs: src

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 62078b80d46b4864cbabef7a4a8a4fdaa1ef5892a34e925dd38344647192abaf
+-- hash: bde6ed0f437e5e47c511e31e3d91a9e2472b1e1f566df292715621d4265e85ba
 
 name:           echobot
 version:        0.1.0.0
@@ -45,9 +45,9 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
-    , http-client
-    , http-types
+    , lens
     , text
+    , wreq
   default-language: Haskell2010
 
 executable echobot-exe
@@ -62,9 +62,9 @@ executable echobot-exe
     , base >=4.7 && <5
     , bytestring
     , echobot
-    , http-client
-    , http-types
+    , lens
     , text
+    , wreq
   default-language: Haskell2010
 
 test-suite echobot-test
@@ -80,7 +80,7 @@ test-suite echobot-test
     , base >=4.7 && <5
     , bytestring
     , echobot
-    , http-client
-    , http-types
+    , lens
     , text
+    , wreq
   default-language: Haskell2010
