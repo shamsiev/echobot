@@ -30,7 +30,7 @@
   "group_id": "id of your vk bot"
 }
 ```
-**Note:** you have 4 severity levels (debug, info, warning, error). If none of these is specified in config file, then bot uses debug level.
+**Note:** you have 4 log (severity) levels (`debug`, `info`, `warning`, `error`). If none of these is specified in config file, then bot uses `debug` level.
 
 ## TODOS:
 ##### Write Telegram instance:
