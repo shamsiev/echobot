@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module NEW.Logger where
+module NEW.Logger
+  ( Handle(..)
+  , Severity(..)
+  ) where
 
 import           Data.Aeson (FromJSON (..), withText)
 import           Data.Text  (unpack)

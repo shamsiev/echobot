@@ -1,10 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module NEW.Logger.Console where
+module NEW.Logger.Console
+  ( newHandle
+  , parseConfig
+  ) where
 
 import           Control.Monad (when)
-import           Data.Aeson    (FromJSON (parseJSON), withObject, (.!=), (.:?))
+import           Data.Aeson    (FromJSON (parseJSON), eitherDecodeFileStrict,
+                                withObject, (.!=), (.:?))
 import           NEW.Logger    (Handle (..), Severity (..))
 import           Prelude       hiding (error)
 
@@ -34,3 +38,6 @@ newHandle Config {..} =
           \message ->
             when (Error >= cSeverity) $ putStrLn (show Error ++ message)
       }
+
+parseConfig :: FilePath -> IO Config
+parseConfig filePath = eitherDecodeFileStrict filePath >>= either fail return
