@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d8f1b3ad7e2f8c9d62d9ef96d5d09de4bef20e8c8cbfc51ea614a99df766c7fe
+-- hash: 1913112a503c3650116d175343c80b5aeb1422f9ff47f0a7a582be9e3c314c9b
 
 name:           echobot
 version:        0.1.0.0
@@ -52,6 +52,7 @@ library
       Logger
       Logger.Console
       NEW.Bot
+      NEW.Bot.Telegram
       NEW.Logger
       NEW.Logger.Console
   other-modules:
