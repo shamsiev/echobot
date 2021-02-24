@@ -1,5 +1,6 @@
 module NEW.Bot where
 
-newtype Handle = Handle
-  { start :: FilePath -> IO ()
-  }
+newtype Handle =
+    Handle
+    { start :: FilePath -> IO ()
+    }
