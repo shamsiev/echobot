@@ -1,32 +1,22 @@
-{-# LANGUAGE GeneralisedNewtypeDeriving #-}
-{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE RecordWildCards #-}
 
-module Logger.StdLogger where
+module Logger.StdLogger (new) where
 
-import           Control.Monad.Reader (MonadIO (..), MonadReader (ask),
-                                       ReaderT (..), when)
-import           Data.Text            (pack)
-import qualified Data.Text.IO         as TextIO
-import           Logger               (Logger (..), Severity)
+import           Control.Monad (when)
+import           Data.Text     (pack)
+import qualified Data.Text.IO  as TextIO
+import           Logger
 
 newtype Config =
     Config
     { cSeverity :: Severity
     }
 
-newtype StdLogger r =
-    StdLogger
-    { stdLogger :: ReaderT Config IO r
-    }
-    deriving (Functor,Applicative,Monad,MonadIO,MonadReader Config)
-
-instance Logger StdLogger where
-    log severity message = do
-        Config {..} <- ask
-        liftIO
-            $ when (severity >= cSeverity)
-            $ TextIO.putStrLn
-            $ pack (show severity) <> message
-
-runStdLogger :: StdLogger r -> Config -> IO r
-runStdLogger (StdLogger logger) = runReaderT logger
+new :: Config -> IO Handle
+new Config {..} =
+    return
+        Handle
+        { log = \severity message -> when (severity >= cSeverity)
+              $ TextIO.putStrLn
+              $ pack (show severity) <> message
+        }
