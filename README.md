@@ -28,6 +28,7 @@ vk:
   group_id: your_group_id_here
   api_version: your_api_version_here
 ```
+**Note:** if you don't specify logger level, it will use debug.
 
 ## TODOS
 - [ ] Logger
