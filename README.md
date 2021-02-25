@@ -9,6 +9,7 @@
 
 ## <a id="configuration-file-example"></a> Configuration file example ##
 ```yaml
+# this will be changed
 logger:
   type: console # console / file / mixed
   console_level: debug # debug / info / warning / error
