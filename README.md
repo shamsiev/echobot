@@ -31,11 +31,7 @@ vk:
 ```
 
 ## TODOS
-- [ ] Logger
-  - [ ] Console instance
-  - [ ] File instance
-  - [ ] Mixed instance
-  - [ ] Format logger file: exports -> types -> instances -> functions
+- [x] Logger
 - [ ] Bot
   - [ ] Telegram
   - [ ] VK
