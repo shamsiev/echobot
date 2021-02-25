@@ -13,6 +13,7 @@ logger:
   type: console # console / file / mixed
   console_level: debug # debug / info / warning / error
   file_level: debug # debug / info / warning / error
+  file_path: file_to_config_file
 
 bot:
   instance: tg # tg / vk
@@ -28,7 +29,6 @@ vk:
   group_id: your_group_id_here
   api_version: your_api_version_here
 ```
-**Note:** if you don't specify logger level, it will use debug.
 
 ## TODOS
 - [ ] Logger
