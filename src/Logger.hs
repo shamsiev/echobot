@@ -2,13 +2,13 @@
 
 module Logger where
 
-import           Data.Text (unpack)
+import           Data.Text (Text, unpack)
 import           Data.Yaml (FromJSON (parseJSON), withText)
 import           Prelude   hiding (error, log)
 
 newtype Handle =
     Handle
-    { log :: Level -> String -> IO ()
+    { log :: Level -> Text -> IO ()
     }
 
 data Level
@@ -24,16 +24,16 @@ instance Show Level where
     show Warning = "[ WARN  ] "
     show Error   = "[ ERROR ] "
 
-debug :: Handle -> String -> IO ()
+debug :: Handle -> Text -> IO ()
 debug = (`log` Debug)
 
-info :: Handle -> String -> IO ()
+info :: Handle -> Text -> IO ()
 info = (`log` Info)
 
-warning :: Handle -> String -> IO ()
+warning :: Handle -> Text -> IO ()
 warning = (`log` Warning)
 
-error :: Handle -> String -> IO ()
+error :: Handle -> Text -> IO ()
 error = (`log` Error)
 
 instance FromJSON Level where
