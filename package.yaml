@@ -25,10 +25,14 @@ dependencies:
 - text
 - lens
 - time
+- vector
+- http-client
+- req
 - containers
 - aeson
 - yaml
 - wreq
+- modern-uri
 
 library:
   source-dirs: src
