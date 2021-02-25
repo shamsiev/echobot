@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1913112a503c3650116d175343c80b5aeb1422f9ff47f0a7a582be9e3c314c9b
+-- hash: dd8dca858428f8705cb154938d47dc64a07ae4cc2633aa32980202405dc326e1
 
 name:           echobot
 version:        0.1.0.0
@@ -26,35 +26,6 @@ source-repository head
   location: https://github.com/shamsiev/echobot
 
 library
-  exposed-modules:
-      Bot
-      Bot.Telegram
-      Bot.Telegram.Config
-      Bot.Telegram.HandleCallbackQuery
-      Bot.Telegram.HandleMessage
-      Bot.Telegram.HandleMessage.Audio
-      Bot.Telegram.HandleMessage.Contact
-      Bot.Telegram.HandleMessage.Document
-      Bot.Telegram.HandleMessage.Help
-      Bot.Telegram.HandleMessage.Location
-      Bot.Telegram.HandleMessage.Photo
-      Bot.Telegram.HandleMessage.Poll
-      Bot.Telegram.HandleMessage.Repeat
-      Bot.Telegram.HandleMessage.Sticker
-      Bot.Telegram.HandleMessage.Text
-      Bot.Telegram.HandleMessage.Venue
-      Bot.Telegram.HandleMessage.Video
-      Bot.Telegram.HandleMessage.VideoNote
-      Bot.Telegram.HandleMessage.Voice
-      Bot.Telegram.Updates
-      Bot.VK
-      Bot.VK.Config
-      Logger
-      Logger.Console
-      NEW.Bot
-      NEW.Bot.Telegram
-      NEW.Logger
-      NEW.Logger.Console
   other-modules:
       Paths_echobot
   hs-source-dirs:
