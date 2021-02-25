@@ -24,8 +24,10 @@ dependencies:
 - bytestring
 - text
 - lens
+- time
 - containers
 - aeson
+- yaml
 - wreq
 
 library:

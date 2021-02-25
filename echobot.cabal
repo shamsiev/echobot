@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd8dca858428f8705cb154938d47dc64a07ae4cc2633aa32980202405dc326e1
+-- hash: 8a104dfd43e8b33b64f4b6bb256c153d8877f2de68d23a69b3d2554df53c3544
 
 name:           echobot
 version:        0.1.0.0
@@ -26,6 +26,8 @@ source-repository head
   location: https://github.com/shamsiev/echobot
 
 library
+  exposed-modules:
+      Logger
   other-modules:
       Paths_echobot
   hs-source-dirs:
@@ -37,7 +39,9 @@ library
     , containers
     , lens
     , text
+    , time
     , wreq
+    , yaml
   default-language: Haskell2010
 
 executable echobot-exe
@@ -55,7 +59,9 @@ executable echobot-exe
     , echobot
     , lens
     , text
+    , time
     , wreq
+    , yaml
   default-language: Haskell2010
 
 test-suite echobot-test
@@ -74,5 +80,7 @@ test-suite echobot-test
     , echobot
     , lens
     , text
+    , time
     , wreq
+    , yaml
   default-language: Haskell2010
