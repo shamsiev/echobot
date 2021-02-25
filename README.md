@@ -35,6 +35,7 @@ vk:
   - [ ] Console instance
   - [ ] File instance
   - [ ] Mixed instance
+  - [ ] Format logger file: exports -> types -> instances -> functions
 - [ ] Bot
   - [ ] Telegram
   - [ ] VK
