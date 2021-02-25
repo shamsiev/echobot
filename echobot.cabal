@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ac0aa9ebceb6455033b903fee0645bf1adbddfb9c85dec728331e876c5e5441b
+-- hash: a29d5121d4d28c9fc2ad3dd346fbb7fef9fa18e326230d6eeb0b6635bb62cd87
 
 name:           echobot
 version:        0.1.0.0
@@ -27,10 +27,9 @@ source-repository head
 
 library
   exposed-modules:
-      Bot
-      Bot.Telegram
       Logger
-      WebDriver
+      Logger.FileLogger
+      Logger.StdLogger
   other-modules:
       Paths_echobot
   hs-source-dirs:
@@ -43,6 +42,7 @@ library
     , http-client
     , lens
     , modern-uri
+    , mtl
     , req
     , text
     , time
@@ -67,6 +67,7 @@ executable echobot-exe
     , http-client
     , lens
     , modern-uri
+    , mtl
     , req
     , text
     , time
@@ -92,6 +93,7 @@ test-suite echobot-test
     , http-client
     , lens
     , modern-uri
+    , mtl
     , req
     , text
     , time

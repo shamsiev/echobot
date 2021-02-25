@@ -31,7 +31,7 @@ vk:
 ```
 
 ## TODOS
-- [ ] Logger
+- [x] Logger
 - [ ] Bot
   - [ ] Telegram
   - [ ] VK

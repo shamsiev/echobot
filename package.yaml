@@ -26,6 +26,7 @@ dependencies:
 - lens
 - time
 - vector
+- mtl
 - http-client
 - req
 - containers
