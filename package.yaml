@@ -24,16 +24,12 @@ dependencies:
 - bytestring
 - text
 - lens
+- random
 - time
-- vector
 - mtl
-- http-client
-- req
-- containers
 - aeson
 - yaml
 - wreq
-- modern-uri
 
 library:
   source-dirs: src
