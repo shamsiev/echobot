@@ -4,13 +4,17 @@ import           Data.Text (Text)
 
 type ChatId = Int
 
-type MessageId = Int
+type QueryUserdata = Text
 
-type FileId = Text
+type MessageId = Int
 
 type QueryId = Text
 
-type QueryUserdata = Text
+type QueryData = Text
+
+type FileId = Text
+
+type Caption = Text
 
 data MediaType
     = MediaPhoto
@@ -23,10 +27,7 @@ data MediaType
     | MediaUnknown
     deriving (Show,Eq)
 
-data ForeignMedia = ForeignMedia !MediaType !Text !Text
-    deriving (Show,Eq)
-
-data SendableMedia = SendableMedia !MediaType !Text
+data Media = Media !MediaType !FileId !Caption
     deriving (Show,Eq)
 
 data Event
@@ -38,7 +39,7 @@ data Event
     | EventMedia
       { eChatId  :: !ChatId
       , eCaption :: !Text
-      , eMedia   :: [ForeignMedia]
+      , eMedia   :: [Media]
       }
     | EventQuery
       { eChatId    :: !ChatId
@@ -53,26 +54,11 @@ data QueryButton =
     { bTitle    :: !Text
     , bUserdata :: !QueryUserdata
     }
-    deriving (Show,Eq)
-
-data PossessMediaOutcome
-    = PossessMediaSuccess !SendableMedia
-    | PossessMediaUnknownType !Text
-    | PossessMediaUnsupported
-    | PossessMediaInternalError
-    deriving (Show,Eq)
 
 data Handle =
     Handle
-    { poll :: IO [Event]
-    , sendMessage
-          :: ChatId -> Text -> [QueryButton] -> IO (Either Text MessageId)
-    , sendMedia :: ChatId -> Text -> [SendableMedia] -> IO (Either Text ())
-    , possessMedia :: ChatId -> ForeignMedia -> IO PossessMediaOutcome
-    , updateMessage :: ChatId
-                    -> MessageId
-                    -> Text
-                    -> [QueryButton]
-                    -> IO (Either Text ())
-    , answerQuery :: QueryId -> Text -> IO (Either Text ())
+    { poll        :: IO [Event]
+    , sendMessage :: ChatId -> Text -> [QueryButton] -> IO ()
+    , sendMedia   :: ChatId -> [Media] -> IO ()
+    , answerQuery :: QueryId -> QueryData -> IO ()
     }
