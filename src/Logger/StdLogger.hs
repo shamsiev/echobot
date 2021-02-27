@@ -5,13 +5,15 @@ module Logger.StdLogger (new) where
 import           Control.Monad (when)
 import           Data.Text     (pack)
 import qualified Data.Text.IO  as TextIO
-import           Logger
+import           Logger        (Handle (..), Severity)
 
+-------------------------------------------------------------------------------
 newtype Config =
     Config
     { cSeverity :: Severity
     }
 
+-------------------------------------------------------------------------------
 new :: Config -> IO Handle
 new Config {..} =
     return

@@ -2,6 +2,7 @@ module Bot where
 
 import           Data.Text (Text)
 
+-------------------------------------------------------------------------------
 type ChatId = Int
 
 type QueryUserdata = Text
@@ -16,6 +17,7 @@ type FileId = Text
 
 type Caption = Text
 
+-------------------------------------------------------------------------------
 data MediaType
     = MediaPhoto
     | MediaVideo
@@ -27,9 +29,11 @@ data MediaType
     | MediaUnknown
     deriving (Show,Eq)
 
+-------------------------------------------------------------------------------
 data Media = Media !MediaType !FileId !Caption
     deriving (Show,Eq)
 
+-------------------------------------------------------------------------------
 data Event
     = EventMessage
       { eChatId    :: !ChatId
@@ -37,24 +41,24 @@ data Event
       , eMessage   :: !Text
       }
     | EventMedia
-      { eChatId  :: !ChatId
-      , eCaption :: !Text
-      , eMedia   :: [Media]
+      { eChatId :: !ChatId
+      , eMedia  :: [Media]
       }
     | EventQuery
-      { eChatId    :: !ChatId
-      , eMessageId :: !MessageId
-      , eQueryId   :: !QueryId
-      , eUserdata  :: !QueryUserdata
+      { eChatId   :: !ChatId
+      , eQueryId  :: !QueryId
+      , eUserdata :: !QueryUserdata
       }
     deriving (Show,Eq)
 
+-------------------------------------------------------------------------------
 data QueryButton =
     QueryButton
     { bTitle    :: !Text
     , bUserdata :: !QueryUserdata
     }
 
+-------------------------------------------------------------------------------
 data Handle =
     Handle
     { poll        :: IO [Event]

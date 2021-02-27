@@ -7,15 +7,17 @@ import           Data.Text        (pack)
 import qualified Data.Text.IO     as TextIO
 import           Data.Time.Clock  (getCurrentTime)
 import           Data.Time.Format (defaultTimeLocale, formatTime)
-import           Logger
+import           Logger           (Handle (..), Severity)
 import qualified System.IO        as IO
 
+-------------------------------------------------------------------------------
 data Config =
     Config
     { cSeverity :: Severity
     , cFilePath :: FilePath
     }
 
+-------------------------------------------------------------------------------
 new :: Config -> IO Handle
 new Config {..} =
     return

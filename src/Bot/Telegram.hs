@@ -3,13 +3,18 @@
 
 module Bot.Telegram where
 
-import           Bot
-import           Control.Lens
-import           Data.IORef
-import           Data.Text    (Text, pack, unpack)
+import           Bot                            (Event)
+import qualified Bot.Telegram.Internals.Updates as Updates
+import           Control.Lens                   ((&), (.~), (^.))
+import           Data.Aeson                     (eitherDecode)
+import           Data.IORef                     (IORef, readIORef)
+import           Data.Text                      (Text, pack, unpack)
 import qualified Logger
-import           Network.Wreq
+import           Network.Wreq                   (defaults, getWith, param,
+                                                 responseBody, responseStatus,
+                                                 statusCode)
 
+-------------------------------------------------------------------------------
 data Config =
     Config
     { cToken         :: Text
@@ -19,18 +24,15 @@ data Config =
     , cTimeout       :: Int
     }
 
-type Counter = Int
-
-type Counters = [(ChatId, Counter)]
-
+-------------------------------------------------------------------------------
 data Telegram =
     Telegram
-    { tgConfig   :: Config
-    , tgLogger   :: Logger.Handle
-    , tgOffset   :: IORef Int
-    , tgCounters :: IORef Counters
+    { tgConfig :: Config
+    , tgLogger :: Logger.Handle
+    , tgOffset :: IORef Int
     }
 
+-------------------------------------------------------------------------------
 tgPoll :: Telegram -> IO [Event]
 tgPoll Telegram {..} = do
     oldOffset <- readIORef tgOffset
@@ -45,10 +47,24 @@ tgPoll Telegram {..} = do
         $ "https://api.telegram.org/bot"
         ++ unpack (cToken tgConfig)
         ++ "/getUpdates"
-    undefined
+    case response ^. responseStatus . statusCode of
+        200 -> do
+            Logger.info tgLogger "Telegram: Updates received"
+            Logger.debug tgLogger "Telegram: Parsing updates..."
+            let updates =
+                    eitherDecode (response ^. responseBody)
+                        :: Either String Updates.Updates
+            either
+                fail
+                (return . map Updates.updateToEvent . Updates.uResult)
+                updates
+        code -> fail $ "Telegram: Request failed: " ++ show code
 
+-------------------------------------------------------------------------------
 tgSendMessage = undefined
 
+-------------------------------------------------------------------------------
 tgSendMedia = undefined
 
+-------------------------------------------------------------------------------
 tgAnswerQuery = undefined
