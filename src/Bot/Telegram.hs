@@ -4,10 +4,10 @@
 module Bot.Telegram where
 
 import Bot (Event)
-import Bot.Telegram.Internal (Updates(uResult),updateToEvent)
+import Bot.Telegram.Internal (Updates(uResult),updateToEvent,Update(uUpdateId))
 import Data.Aeson (KeyValue((.=)),eitherDecode,object)
 import Data.ByteString.Lazy.Internal (ByteString)
-import Data.IORef (IORef,readIORef)
+import Data.IORef (IORef,readIORef,writeIORef)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text,pack,unpack)
 import qualified Logger
@@ -52,6 +52,11 @@ tgGetEvents IHandle {..} = do
                 Left err -> fail err
                 Right results -> do
                     let events = mapMaybe updateToEvent (uResult results)
+                    let newOffset =
+                            maximum
+                            $ offset
+                            : map ((+ 1) . uUpdateId) (uResult results)
+                    writeIORef iOffset newOffset
                     Logger.debug iLogger
                         $ "Telegram: Current events: " <> pack (show events)
                     return events

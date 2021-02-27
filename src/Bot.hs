@@ -15,37 +15,37 @@ type Caption = Text
 
 --------------------------------------------------------------------------------
 data Media
-    = MediaSticker !FileId
-    | MediaAnimation !FileId !Caption
-    | MediaDocument !FileId !Caption
-    | MediaPhoto !FileId !Caption
-    | MediaVideo !FileId !Caption
-    | MediaAudio !FileId !Caption
-    | MediaVoice !FileId !Caption
+    = MediaSticker FileId
+    | MediaAnimation FileId Caption
+    | MediaDocument FileId Caption
+    | MediaPhoto FileId Caption
+    | MediaVideo FileId Caption
+    | MediaAudio FileId Caption
+    | MediaVoice FileId Caption
     deriving (Show,Eq)
 
 --------------------------------------------------------------------------------
 data Event
     = EventMessage
-      { eChatId :: !ChatId
-      , eMessage :: !Text
+      { eChatId :: ChatId
+      , eMessage :: Text
       }
     | EventMedia
-      { eChatId :: !ChatId
+      { eChatId :: ChatId
       , eMedia :: Media
       }
     | EventQuery
-      { eChatId :: !ChatId
-      , eQueryId :: !QueryId
-      , eUserdata :: !QueryData
+      { eChatId :: ChatId
+      , eQueryId :: QueryId
+      , eUserdata :: QueryData
       }
     deriving (Show,Eq)
 
 --------------------------------------------------------------------------------
 data QueryButton =
     QueryButton
-    { bTitle :: !Text
-    , bUserdata :: !QueryData
+    { bTitle :: Text
+    , bUserdata :: QueryData
     }
     deriving Show
 
