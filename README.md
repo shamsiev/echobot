@@ -9,21 +9,20 @@
 
 ## <a id="configuration-file-example"></a> Configuration file example ##
 ```yaml
-# this will be changed
 logger:
-  type: console # console / file / mixed
-  console_level: debug # debug / info / warning / error
-  file_level: debug # debug / info / warning / error
+  type: console # console / file
+  level: debug # debug / info / warning / error
   file_path: file_to_config_file
 
 bot:
-  instance: tg # tg / vk
+  instance: telegram # telegram / vk
   help_message: answer to /help command
   repeat_message: answer to /repeat command
   repeat_count: 1 # 1 to 5
 
 telegram:
   token: your_token_here
+  timeout: 0
 
 vk:
   access_key: your_access_key_here
