@@ -3,7 +3,7 @@
 
 module Bot.Telegram where
 
-import Bot (ChatId, Event(..), Media(..))
+import Bot (ChatId, Event(..), Handle(..), Media(..))
 import Bot.Telegram.Internal
   ( Update(uUpdateId)
   , Updates(uResult)
@@ -49,6 +49,13 @@ data IHandle =
     , iCounters :: IORef Counters
     , iLogger :: Logger.Handle
     }
+
+--------------------------------------------------------------------------------
+new :: IHandle -> IO Handle
+new handle =
+  return
+    Handle
+      {getEvents = tgGetEvents handle, processEvents = tgProcessEvents handle}
 
 --------------------------------------------------------------------------------
 tgGetEvents :: IHandle -> IO [Event]
