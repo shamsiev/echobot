@@ -1,16 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Bot.Telegram where
 
-import           Bot                           (Event)
-import           Bot.Telegram.Internal
-import           Data.Aeson                    (KeyValue ((.=)), eitherDecode,
-                                                object)
-import           Data.ByteString.Lazy.Internal (ByteString)
-import           Data.IORef                    (IORef, readIORef)
-import           Data.Maybe                    (mapMaybe)
-import           Data.Text                     (Text, pack, unpack)
+import Bot (Event)
+import Bot.Telegram.Internal (Updates(uResult),updateToEvent)
+import Data.Aeson (KeyValue((.=)),eitherDecode,object)
+import Data.ByteString.Lazy.Internal (ByteString)
+import Data.IORef (IORef,readIORef)
+import Data.Maybe (mapMaybe)
+import Data.Text (Text,pack,unpack)
 import qualified Logger
 import qualified Web
 
@@ -24,10 +23,10 @@ type Offset = Int
 --------------------------------------------------------------------------------
 data IHandle =
     IHandle
-    { iToken   :: Token
+    { iToken :: Token
     , iTimeout :: Timeout
-    , iOffset  :: IORef Offset
-    , iLogger  :: Logger.Handle
+    , iOffset :: IORef Offset
+    , iLogger :: Logger.Handle
     }
 
 --------------------------------------------------------------------------------

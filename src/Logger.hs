@@ -1,7 +1,7 @@
 module Logger (Handle(..),Severity(..),debug,info,warning,error) where
 
-import           Data.Text (Text)
-import           Prelude   hiding (error, log)
+import Data.Text (Text)
+import Prelude hiding (error,log)
 
 --------------------------------------------------------------------------------
 newtype Handle =
@@ -18,10 +18,10 @@ data Severity
     deriving (Ord,Eq)
 
 instance Show Severity where
-    show Debug   = "[ DEBUG ] "
-    show Info    = "[ INFO  ] "
+    show Debug = "[ DEBUG ] "
+    show Info = "[ INFO  ] "
     show Warning = "[ WARN  ] "
-    show Error   = "[ ERROR ] "
+    show Error = "[ ERROR ] "
 
 --------------------------------------------------------------------------------
 debug :: Handle -> Text -> IO ()

@@ -1,21 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Bot.Telegram.Internal where
 
-import           Bot        (Caption,
-                             Event (EventMedia, EventMessage, EventQuery),
-                             FileId,
-                             Media (MediaAnimation, MediaAudio, MediaDocument, MediaPhoto, MediaSticker, MediaVideo, MediaVoice),
-                             QueryData, QueryId)
-import           Data.Aeson (FromJSON (parseJSON), withObject, (.:), (.:?))
-import           Data.Maybe (fromJust, fromMaybe, isJust)
-import           Data.Text  (Text)
+import Bot (Caption,Event(EventMedia, EventMessage, EventQuery),FileId
+           ,Media(MediaAnimation, MediaAudio, MediaDocument, MediaPhoto,
+      MediaSticker, MediaVideo, MediaVoice),QueryData,QueryId)
+import Data.Aeson (FromJSON(parseJSON),withObject,(.:),(.:?))
+import Data.Maybe (fromJust,fromMaybe,isJust)
+import Data.Text (Text)
 
 --------------------------------------------------------------------------------
 updateToEvent :: Update -> Maybe Event
 updateToEvent Update {..}
-  | isJust uQuery = callbackQueryToEvent $ fromJust uQuery
+  | isJust uQuery = queryToEvent $ fromJust uQuery
   | isJust uMessage = messageToEvent $ fromJust uMessage
   | otherwise = Nothing
 
@@ -49,7 +47,7 @@ messageToEvent Message {..}
       Just
       $ EventMedia
           (cId mChat)
-          (MediaAudio (fId $ fromJust mVideo) (fromMaybe "" mCaption))
+          (MediaAudio (fId $ fromJust mAudio) (fromMaybe "" mCaption))
   | isJust mVoice =
       Just
       $ EventMedia
@@ -58,8 +56,8 @@ messageToEvent Message {..}
   | otherwise = Nothing
 
 --------------------------------------------------------------------------------
-callbackQueryToEvent :: Query -> Maybe Event
-callbackQueryToEvent Query {..}
+queryToEvent :: Query -> Maybe Event
+queryToEvent Query {..}
   | isJust qData = Just $ EventQuery (cId qFrom) qId (fromJust qData)
   | otherwise = Nothing
 
@@ -68,7 +66,7 @@ newtype Updates =
     Updates
     { uResult :: [Update]
     }
-    deriving Show
+    deriving (Show)
 
 instance FromJSON Updates where
     parseJSON = withObject "Bot.Telegram.Internal.Updates" $ \o
@@ -78,10 +76,10 @@ instance FromJSON Updates where
 data Update =
     Update
     { uUpdateId :: Int
-    , uMessage  :: Maybe Message
-    , uQuery    :: Maybe Query
+    , uMessage :: Maybe Message
+    , uQuery :: Maybe Query
     }
-    deriving Show
+    deriving (Show)
 
 instance FromJSON Update where
     parseJSON = withObject "Bot.Telegram.Internal.Update" $ \o -> Update
@@ -92,18 +90,18 @@ instance FromJSON Update where
 --------------------------------------------------------------------------------
 data Message =
     Message
-    { mChat      :: Chat
-    , mText      :: Maybe Text
-    , mCaption   :: Maybe Caption
-    , mSticker   :: Maybe File
+    { mChat :: Chat
+    , mText :: Maybe Text
+    , mCaption :: Maybe Caption
+    , mSticker :: Maybe File
     , mAnimation :: Maybe File
-    , mDocument  :: Maybe File
-    , mPhoto     :: Maybe [File]
-    , mVideo     :: Maybe File
-    , mAudio     :: Maybe File
-    , mVoice     :: Maybe File
+    , mDocument :: Maybe File
+    , mPhoto :: Maybe [File]
+    , mVideo :: Maybe File
+    , mAudio :: Maybe File
+    , mVoice :: Maybe File
     }
-    deriving Show
+    deriving (Show)
 
 instance FromJSON Message where
     parseJSON = withObject "Bot.Telegram.Internal.Message" $ \o -> Message
@@ -123,7 +121,7 @@ newtype Chat =
     Chat
     { cId :: Int
     }
-    deriving Show
+    deriving (Show)
 
 instance FromJSON Chat where
     parseJSON =
@@ -134,7 +132,7 @@ newtype File =
     File
     { fId :: FileId
     }
-    deriving Show
+    deriving (Show)
 
 instance FromJSON File where
     parseJSON =
@@ -143,11 +141,11 @@ instance FromJSON File where
 --------------------------------------------------------------------------------
 data Query =
     Query
-    { qId   :: QueryId
+    { qId :: QueryId
     , qFrom :: Chat
     , qData :: Maybe QueryData
     }
-    deriving Show
+    deriving (Show)
 
 instance FromJSON Query where
     parseJSON = withObject "Bot.Telegram.Internal.Query" $ \o

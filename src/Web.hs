@@ -1,10 +1,9 @@
 module Web where
 
-import           Control.Lens                  ((^.))
-import           Data.Aeson                    (Value, object)
-import           Data.ByteString.Lazy.Internal (ByteString)
-import           Network.Wreq                  (post, responseBody,
-                                                responseStatus, statusCode)
+import Control.Lens ((^.))
+import Data.Aeson (Value,object)
+import Data.ByteString.Lazy.Internal (ByteString)
+import Network.Wreq (post,responseBody,responseStatus,statusCode)
 
 --------------------------------------------------------------------------------
 type Address = String

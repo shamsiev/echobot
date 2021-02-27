@@ -2,13 +2,13 @@
 
 module Logger.FileLogger (new) where
 
-import           Control.Monad    (when)
-import           Data.Text        (pack)
-import qualified Data.Text.IO     as TextIO
-import           Data.Time.Clock  (getCurrentTime)
-import           Data.Time.Format (defaultTimeLocale, formatTime)
-import           Logger           (Handle (..), Severity)
-import qualified System.IO        as IO
+import Control.Monad (when)
+import Data.Text (pack)
+import qualified Data.Text.IO as TextIO
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Format (defaultTimeLocale,formatTime)
+import Logger (Handle(..),Severity)
+import qualified System.IO as IO
 
 --------------------------------------------------------------------------------
 data Config =

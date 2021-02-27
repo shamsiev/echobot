@@ -1,6 +1,6 @@
 module Bot where
 
-import           Data.Text (Text)
+import Data.Text (Text)
 
 --------------------------------------------------------------------------------
 type ChatId = Int
@@ -27,16 +27,16 @@ data Media
 --------------------------------------------------------------------------------
 data Event
     = EventMessage
-      { eChatId  :: !ChatId
+      { eChatId :: !ChatId
       , eMessage :: !Text
       }
     | EventMedia
       { eChatId :: !ChatId
-      , eMedia  :: Media
+      , eMedia :: Media
       }
     | EventQuery
-      { eChatId   :: !ChatId
-      , eQueryId  :: !QueryId
+      { eChatId :: !ChatId
+      , eQueryId :: !QueryId
       , eUserdata :: !QueryData
       }
     deriving (Show,Eq)
@@ -44,7 +44,7 @@ data Event
 --------------------------------------------------------------------------------
 data QueryButton =
     QueryButton
-    { bTitle    :: !Text
+    { bTitle :: !Text
     , bUserdata :: !QueryData
     }
     deriving Show
@@ -52,6 +52,6 @@ data QueryButton =
 --------------------------------------------------------------------------------
 data Handle =
     Handle
-    { getEvents     :: IO [Event]
+    { getEvents :: IO [Event]
     , processEvents :: [Event] -> IO ()
     }

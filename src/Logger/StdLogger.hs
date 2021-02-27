@@ -2,10 +2,10 @@
 
 module Logger.StdLogger (new) where
 
-import           Control.Monad (when)
-import           Data.Text     (pack)
-import qualified Data.Text.IO  as TextIO
-import           Logger        (Handle (..), Severity)
+import Control.Monad (when)
+import Data.Text (pack)
+import qualified Data.Text.IO as TextIO
+import Logger (Handle(..),Severity)
 
 --------------------------------------------------------------------------------
 newtype Config =
