@@ -7,6 +7,8 @@ module Logger.StdLogger
 import Control.Monad (when)
 import Data.Text (pack)
 import qualified Data.Text.IO as TextIO
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Format (defaultTimeLocale, formatTime)
 import Logger (Handle(..), Severity)
 
 --------------------------------------------------------------------------------
@@ -22,6 +24,8 @@ new Config {..} =
     Handle
       { log =
           \severity message ->
-            when (severity >= cSeverity) $
-            TextIO.putStrLn $ pack (show severity) <> message
+            when (severity >= cSeverity) $ do
+              time <- getCurrentTime
+              let timestr = formatTime defaultTimeLocale "%F %T.%q" time
+              TextIO.putStrLn $ pack (show timestr ++ show severity) <> message
       }
