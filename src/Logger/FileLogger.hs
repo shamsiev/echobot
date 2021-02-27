@@ -32,6 +32,6 @@ new Config {..} =
               time <- getCurrentTime
               let timestr = formatTime defaultTimeLocale "%F %T.%q" time
               TextIO.hPutStrLn fh $
-                pack (show severity ++ show timestr ++ ": ") <> message
+                pack (show timestr ++ show severity) <> message
               IO.hClose fh
       }
