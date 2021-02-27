@@ -10,7 +10,14 @@ import Bot.Telegram.Internal
   , updateToEvent
   )
 import Control.Monad (replicateM_)
-import Data.Aeson (KeyValue((.=)), Value, eitherDecode, object)
+import Data.Aeson
+  ( KeyValue((.=))
+  , ToJSON(..)
+  , Value
+  , eitherDecode
+  , object
+  , toJSON
+  )
 import Data.ByteString.Lazy.Internal (ByteString)
 import Data.IORef (IORef, readIORef, writeIORef)
 import qualified Data.Map.Strict as M
@@ -96,15 +103,58 @@ processMessage IHandle {..} EventMessage {..} = do
     "Telegram: Current repeat count: " <> pack (show counter)
   let address =
         "https://api.telegram.org/bot" ++ unpack iToken ++ "/sendMessage"
-  let json = object ["chat_id" .= eChatId, "text" .= eMessage]
-  replicateM_ counter $ do
-    (code, _) <- Web.sendJSON address json
-    case code of
-      200 -> Logger.info iLogger "Telegram: Sent message"
-      _ ->
-        Logger.error iLogger $
-        "Telegram: Sending message failed: " <> pack (show code)
+  case eMessage of
+    "/help" -> do
+      let json = object ["chat_id" .= eChatId, "text" .= iHelpMessage]
+      (code, _) <- Web.sendJSON address json
+      case code of
+        200 -> Logger.info iLogger "Telegram: Sent /help message"
+        _ ->
+          Logger.error iLogger $
+          "Telegram: Sending /help message failed: " <> pack (show code)
+    "/repeat" -> do
+      let json =
+            object
+              [ "chat_id" .= eChatId
+              , "text" .= iRepeatMessage
+              , "reply_markup" .= object ["inline_keyboard" .= keyboard]
+              ]
+      (code, _) <- Web.sendJSON address json
+      case code of
+        200 -> Logger.info iLogger "Telegram: Sent /repeat meesage"
+        _ ->
+          Logger.error iLogger $
+          "Telegram: Sending /repeat message failed: " <> pack (show code)
+    _ -> do
+      let json = object ["chat_id" .= eChatId, "text" .= eMessage]
+      replicateM_ counter $ do
+        (code, _) <- Web.sendJSON address json
+        case code of
+          200 -> Logger.info iLogger "Telegram: Sent message"
+          _ ->
+            Logger.error iLogger $
+            "Telegram: Sending message failed: " <> pack (show code)
 processMessage _ _ = fail "Telegram: processMessage used in a wrong place"
+
+keyboard :: Value
+keyboard =
+  toJSON
+    [ [Button "1" "1"]
+    , [Button "2" "2"]
+    , [Button "3" "3"]
+    , [Button "4" "4"]
+    , [Button "5" "5"]
+    ]
+
+data Button =
+  Button
+    { bText :: Text
+    , bData :: Text
+    }
+  deriving (Show)
+
+instance ToJSON Button where
+  toJSON Button {..} = object ["text" .= bText, "callback_data" .= bData]
 
 --------------------------------------------------------------------------------
 processMedia :: IHandle -> Event -> IO ()
