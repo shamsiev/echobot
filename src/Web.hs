@@ -1,9 +1,9 @@
 module Web where
 
 import Control.Lens ((^.))
-import Data.Aeson (Value,object)
+import Data.Aeson (Value, object)
 import Data.ByteString.Lazy.Internal (ByteString)
-import Network.Wreq (post,responseBody,responseStatus,statusCode)
+import Network.Wreq (post, responseBody, responseStatus, statusCode)
 
 --------------------------------------------------------------------------------
 type Address = String
@@ -17,10 +17,10 @@ type RequestBody = ByteString
 --------------------------------------------------------------------------------
 sendJSON :: Address -> JSON -> IO (StatusCode, RequestBody)
 sendJSON address json = do
-    response <- post address json
-    let code = response ^. responseStatus . statusCode
-    let body = response ^. responseBody
-    return (code, body)
+  response <- post address json
+  let code = response ^. responseStatus . statusCode
+  let body = response ^. responseBody
+  return (code, body)
 
 --------------------------------------------------------------------------------
 emptyJSON :: JSON

@@ -3,11 +3,17 @@
 
 module Bot.Telegram.Internal where
 
-import Bot (Caption,Event(EventMedia, EventMessage, EventQuery),FileId
-           ,Media(MediaAnimation, MediaAudio, MediaDocument, MediaPhoto,
-      MediaSticker, MediaVideo, MediaVoice),QueryData,QueryId)
-import Data.Aeson (FromJSON(parseJSON),withObject,(.:),(.:?))
-import Data.Maybe (fromJust,fromMaybe,isJust)
+import Bot
+  ( Caption
+  , Event(EventMedia, EventMessage, EventQuery)
+  , FileId
+  , Media(MediaAnimation, MediaAudio, MediaDocument, MediaPhoto,
+      MediaSticker, MediaVideo, MediaVoice)
+  , QueryData
+  , QueryId
+  )
+import Data.Aeson (FromJSON(parseJSON), (.:), (.:?), withObject)
+import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
 
 --------------------------------------------------------------------------------
@@ -22,37 +28,37 @@ messageToEvent :: Message -> Maybe Event
 messageToEvent Message {..}
   | isJust mText = Just $ EventMessage (cId mChat) (fromJust mText)
   | isJust mSticker =
-      Just $ EventMedia (cId mChat) (MediaSticker (fId $ fromJust mSticker))
+    Just $ EventMedia (cId mChat) (MediaSticker (fId $ fromJust mSticker))
   | isJust mAnimation =
-      Just
-      $ EventMedia
-          (cId mChat)
-          (MediaAnimation (fId $ fromJust mAnimation) (fromMaybe "" mCaption))
+    Just $
+    EventMedia
+      (cId mChat)
+      (MediaAnimation (fId $ fromJust mAnimation) (fromMaybe "" mCaption))
   | isJust mDocument =
-      Just
-      $ EventMedia
-          (cId mChat)
-          (MediaDocument (fId $ fromJust mDocument) (fromMaybe "" mCaption))
+    Just $
+    EventMedia
+      (cId mChat)
+      (MediaDocument (fId $ fromJust mDocument) (fromMaybe "" mCaption))
   | isJust mPhoto =
-      Just
-      $ EventMedia
-          (cId mChat)
-          (MediaPhoto (fId $ head $ fromJust mPhoto) (fromMaybe "" mCaption))
+    Just $
+    EventMedia
+      (cId mChat)
+      (MediaPhoto (fId $ head $ fromJust mPhoto) (fromMaybe "" mCaption))
   | isJust mVideo =
-      Just
-      $ EventMedia
-          (cId mChat)
-          (MediaVideo (fId $ fromJust mVideo) (fromMaybe "" mCaption))
+    Just $
+    EventMedia
+      (cId mChat)
+      (MediaVideo (fId $ fromJust mVideo) (fromMaybe "" mCaption))
   | isJust mAudio =
-      Just
-      $ EventMedia
-          (cId mChat)
-          (MediaAudio (fId $ fromJust mAudio) (fromMaybe "" mCaption))
+    Just $
+    EventMedia
+      (cId mChat)
+      (MediaAudio (fId $ fromJust mAudio) (fromMaybe "" mCaption))
   | isJust mVoice =
-      Just
-      $ EventMedia
-          (cId mChat)
-          (MediaVoice (fId $ fromJust mVoice) (fromMaybe "" mCaption))
+    Just $
+    EventMedia
+      (cId mChat)
+      (MediaVoice (fId $ fromJust mVoice) (fromMaybe "" mCaption))
   | otherwise = Nothing
 
 --------------------------------------------------------------------------------
@@ -63,33 +69,32 @@ queryToEvent Query {..}
 
 --------------------------------------------------------------------------------
 newtype Updates =
-    Updates
+  Updates
     { uResult :: [Update]
     }
-    deriving (Show)
+  deriving (Show)
 
 instance FromJSON Updates where
-    parseJSON = withObject "Bot.Telegram.Internal.Updates" $ \o
-        -> Updates <$> o .: "result"
+  parseJSON =
+    withObject "Bot.Telegram.Internal.Updates" $ \o -> Updates <$> o .: "result"
 
 --------------------------------------------------------------------------------
 data Update =
-    Update
+  Update
     { uUpdateId :: Int
     , uMessage :: Maybe Message
     , uQuery :: Maybe Query
     }
-    deriving (Show)
+  deriving (Show)
 
 instance FromJSON Update where
-    parseJSON = withObject "Bot.Telegram.Internal.Update" $ \o -> Update
-        <$> o .: "update_id"
-        <*> o .:? "message"
-        <*> o .:? "callback_query"
+  parseJSON =
+    withObject "Bot.Telegram.Internal.Update" $ \o ->
+      Update <$> o .: "update_id" <*> o .:? "message" <*> o .:? "callback_query"
 
 --------------------------------------------------------------------------------
 data Message =
-    Message
+  Message
     { mChat :: Chat
     , mText :: Maybe Text
     , mCaption :: Maybe Caption
@@ -101,52 +106,51 @@ data Message =
     , mAudio :: Maybe File
     , mVoice :: Maybe File
     }
-    deriving (Show)
+  deriving (Show)
 
 instance FromJSON Message where
-    parseJSON = withObject "Bot.Telegram.Internal.Message" $ \o -> Message
-        <$> o .: "chat"
-        <*> o .:? "text"
-        <*> o .:? "caption"
-        <*> o .:? "sticker"
-        <*> o .:? "animation"
-        <*> o .:? "document"
-        <*> o .:? "photo"
-        <*> o .:? "video"
-        <*> o .:? "audio"
-        <*> o .:? "voice"
+  parseJSON =
+    withObject "Bot.Telegram.Internal.Message" $ \o ->
+      Message <$> o .: "chat" <*> o .:? "text" <*> o .:? "caption" <*>
+      o .:? "sticker" <*>
+      o .:? "animation" <*>
+      o .:? "document" <*>
+      o .:? "photo" <*>
+      o .:? "video" <*>
+      o .:? "audio" <*>
+      o .:? "voice"
 
 --------------------------------------------------------------------------------
 newtype Chat =
-    Chat
+  Chat
     { cId :: Int
     }
-    deriving (Show)
+  deriving (Show)
 
 instance FromJSON Chat where
-    parseJSON =
-        withObject "Bot.Telegram.Internal.Chat" $ \o -> Chat <$> o .: "id"
+  parseJSON = withObject "Bot.Telegram.Internal.Chat" $ \o -> Chat <$> o .: "id"
 
 --------------------------------------------------------------------------------
 newtype File =
-    File
+  File
     { fId :: FileId
     }
-    deriving (Show)
+  deriving (Show)
 
 instance FromJSON File where
-    parseJSON =
-        withObject "Bot.Telegram.Internal.File" $ \o -> File <$> o .: "file_id"
+  parseJSON =
+    withObject "Bot.Telegram.Internal.File" $ \o -> File <$> o .: "file_id"
 
 --------------------------------------------------------------------------------
 data Query =
-    Query
+  Query
     { qId :: QueryId
     , qFrom :: Chat
     , qData :: Maybe QueryData
     }
-    deriving (Show)
+  deriving (Show)
 
 instance FromJSON Query where
-    parseJSON = withObject "Bot.Telegram.Internal.Query" $ \o
-        -> Query <$> o .: "id" <*> o .: "from" <*> o .:? "data"
+  parseJSON =
+    withObject "Bot.Telegram.Internal.Query" $ \o ->
+      Query <$> o .: "id" <*> o .: "from" <*> o .:? "data"

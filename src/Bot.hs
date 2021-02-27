@@ -15,43 +15,43 @@ type Caption = Text
 
 --------------------------------------------------------------------------------
 data Media
-    = MediaSticker FileId
-    | MediaAnimation FileId Caption
-    | MediaDocument FileId Caption
-    | MediaPhoto FileId Caption
-    | MediaVideo FileId Caption
-    | MediaAudio FileId Caption
-    | MediaVoice FileId Caption
-    deriving (Show,Eq)
+  = MediaSticker FileId
+  | MediaAnimation FileId Caption
+  | MediaDocument FileId Caption
+  | MediaPhoto FileId Caption
+  | MediaVideo FileId Caption
+  | MediaAudio FileId Caption
+  | MediaVoice FileId Caption
+  deriving (Show, Eq)
 
 --------------------------------------------------------------------------------
 data Event
-    = EventMessage
+  = EventMessage
       { eChatId :: ChatId
       , eMessage :: Text
       }
-    | EventMedia
+  | EventMedia
       { eChatId :: ChatId
       , eMedia :: Media
       }
-    | EventQuery
+  | EventQuery
       { eChatId :: ChatId
       , eQueryId :: QueryId
       , eUserdata :: QueryData
       }
-    deriving (Show,Eq)
+  deriving (Show, Eq)
 
 --------------------------------------------------------------------------------
 data QueryButton =
-    QueryButton
+  QueryButton
     { bTitle :: Text
     , bUserdata :: QueryData
     }
-    deriving Show
+  deriving (Show)
 
 --------------------------------------------------------------------------------
 data Handle =
-    Handle
+  Handle
     { getEvents :: IO [Event]
     , processEvents :: [Event] -> IO ()
     }
