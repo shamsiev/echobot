@@ -10,14 +10,14 @@ import           Data.Time.Format (defaultTimeLocale, formatTime)
 import           Logger           (Handle (..), Severity)
 import qualified System.IO        as IO
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 data Config =
     Config
     { cSeverity :: Severity
     , cFilePath :: FilePath
     }
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 new :: Config -> IO Handle
 new Config {..} =
     return

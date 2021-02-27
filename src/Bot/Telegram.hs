@@ -3,68 +3,61 @@
 
 module Bot.Telegram where
 
-import           Bot                            (Event)
-import qualified Bot.Telegram.Internals.Updates as Updates
-import           Control.Lens                   ((&), (.~), (^.))
-import           Data.Aeson                     (eitherDecode)
-import           Data.IORef                     (IORef, readIORef)
-import           Data.Text                      (Text, pack, unpack)
+import           Bot                           (Event)
+import           Bot.Telegram.Internal
+import           Data.Aeson                    (KeyValue ((.=)), eitherDecode,
+                                                object)
+import           Data.ByteString.Lazy.Internal (ByteString)
+import           Data.IORef                    (IORef, readIORef)
+import           Data.Maybe                    (mapMaybe)
+import           Data.Text                     (Text, pack, unpack)
 import qualified Logger
-import           Network.Wreq                   (defaults, getWith, param,
-                                                 responseBody, responseStatus,
-                                                 statusCode)
+import qualified Web
 
--------------------------------------------------------------------------------
-data Config =
-    Config
-    { cToken         :: Text
-    , cHelpMessage   :: Text
-    , cRepeatMessage :: Text
-    , cRepeatCount   :: Int
-    , cTimeout       :: Int
+--------------------------------------------------------------------------------
+type Token = Text
+
+type Timeout = Int
+
+type Offset = Int
+
+--------------------------------------------------------------------------------
+data IHandle =
+    IHandle
+    { iToken   :: Token
+    , iTimeout :: Timeout
+    , iOffset  :: IORef Offset
+    , iLogger  :: Logger.Handle
     }
 
--------------------------------------------------------------------------------
-data Telegram =
-    Telegram
-    { tgConfig :: Config
-    , tgLogger :: Logger.Handle
-    , tgOffset :: IORef Int
-    }
-
--------------------------------------------------------------------------------
-tgPoll :: Telegram -> IO [Event]
-tgPoll Telegram {..} = do
-    oldOffset <- readIORef tgOffset
-    Logger.debug tgLogger
-        $ "Telegram: Current update offset: " <> pack (show oldOffset)
-    Logger.info tgLogger "Telegram: Poll..."
-    let options =
-            defaults
-            & param "offset" .~ [pack $ show oldOffset]
-            & param "timeout" .~ [pack $ show (cTimeout tgConfig)]
-    response <- getWith options
-        $ "https://api.telegram.org/bot"
-        ++ unpack (cToken tgConfig)
-        ++ "/getUpdates"
-    case response ^. responseStatus . statusCode of
+--------------------------------------------------------------------------------
+tgGetEvents :: IHandle -> IO [Event]
+tgGetEvents IHandle {..} = do
+    offset <- readIORef iOffset
+    Logger.debug iLogger
+        $ "Telegram: Current update offset: " <> pack (show offset)
+    Logger.info iLogger "Telegram: Getting updates..."
+    let address =
+            "https://api.telegram.org/bot" ++ unpack iToken ++ "/getUpdates"
+    let json =
+            object
+                [ "offset" .= pack (show offset)
+                , "timeout" .= pack (show iTimeout)]
+    (status,body) <- Web.sendJSON address json
+    case status of
         200 -> do
-            Logger.info tgLogger "Telegram: Updates received"
-            Logger.debug tgLogger "Telegram: Parsing updates..."
-            let updates =
-                    eitherDecode (response ^. responseBody)
-                        :: Either String Updates.Updates
-            either
-                fail
-                (return . map Updates.updateToEvent . Updates.uResult)
-                updates
+            Logger.info iLogger "Telegram: Updates received"
+            Logger.info iLogger "Telegram: Parsing updates..."
+            let updates = eitherDecode body :: Either String Updates
+            case updates of
+                Left err -> fail err
+                Right results -> do
+                    let events = mapMaybe updateToEvent (uResult results)
+                    Logger.debug iLogger
+                        $ "Telegram: Current events: " <> pack (show events)
+                    return events
         code -> fail $ "Telegram: Request failed: " ++ show code
 
--------------------------------------------------------------------------------
-tgSendMessage = undefined
-
--------------------------------------------------------------------------------
-tgSendMedia = undefined
-
--------------------------------------------------------------------------------
-tgAnswerQuery = undefined
+--------------------------------------------------------------------------------
+tgProcessEvents :: IHandle -> [Event] -> IO ()
+tgProcessEvents IHandle {..} events = undefined
