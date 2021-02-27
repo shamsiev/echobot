@@ -46,16 +46,20 @@ tgGetEvents IHandle {..} = do
     case status of
         200 -> do
             Logger.info iLogger "Telegram: Updates received"
-            Logger.info iLogger "Telegram: Parsing updates..."
+            Logger.debug iLogger "Telegram: Parsing updates..."
             let updates = eitherDecode body :: Either String Updates
             case updates of
                 Left err -> fail err
                 Right results -> do
                     let events = mapMaybe updateToEvent (uResult results)
+                    Logger.debug iLogger "Telegram: Setting update offset..."
                     let newOffset =
                             maximum
                             $ offset
                             : map ((+ 1) . uUpdateId) (uResult results)
+                    Logger.debug iLogger
+                        $ "Telegram: New update offset: "
+                        <> pack (show newOffset)
                     writeIORef iOffset newOffset
                     Logger.debug iLogger
                         $ "Telegram: Current events: " <> pack (show events)
