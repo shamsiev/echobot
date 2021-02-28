@@ -26,9 +26,7 @@ dependencies:
 - bytestring
 - text
 - lens
-- random
 - time
-- mtl
 - aeson
 - yaml
 - wreq
