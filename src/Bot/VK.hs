@@ -15,7 +15,6 @@ import Data.Text (Text, pack, unpack)
 import Data.Yaml (FromJSON(parseJSON), (.:), withObject)
 import qualified Logger
 import Network.Wreq
-import qualified System.Random as Random
 import qualified Web
 
 --------------------------------------------------------------------------------
@@ -58,7 +57,6 @@ data IHandle =
     , iRepeatMessage :: Text
     , iDefaultRepeat :: Counter
     , iCounters :: IORef Counters
-    , iRandomState :: IORef Random.StdGen
     , iLogger :: Logger.Handle
     }
 
@@ -66,8 +64,6 @@ data IHandle =
 new :: Logger.Handle -> Config -> IConfig -> IO Handle
 new logger config iConfig = do
   counters <- newIORef M.empty
-  stdGen <- Random.getStdGen
-  randomState <- newIORef stdGen
   let handle =
         IHandle
           { iAccessKey = cAccessKey iConfig
@@ -78,7 +74,6 @@ new logger config iConfig = do
           , iRepeatMessage = cRepeatMessage config
           , iDefaultRepeat = cRepeatCount config
           , iCounters = counters
-          , iRandomState = randomState
           , iLogger = logger
           }
   return
@@ -129,7 +124,44 @@ vkProcessEvents :: IHandle -> [Event] -> IO ()
 vkProcessEvents handle [] = return ()
 vkProcessEvents handle (e:events) = do
   case e of
-    EventMessage {..} -> print "message event"
+    EventMessage {..} -> processMessage handle e
     EventMedia {..} -> print "media event"
     EventQuery {..} -> print "media event"
   vkProcessEvents handle events
+
+processMessage :: IHandle -> Event -> IO ()
+processMessage IHandle {..} EventMessage {..} = do
+  Logger.info iLogger $ "VK: Processing message for: " <> pack (show eChatId)
+  counters <- readIORef iCounters
+  let counter = fromMaybe iDefaultRepeat $ M.lookup eChatId counters
+  Logger.debug iLogger $ "VK: Current repeat count: " <> pack (show counter)
+  let address = "https://api.vk.com/method/messages.send"
+  case eMessage of
+    "/help" -> do
+      let options =
+            defaults & param "user_id" .~ [pack $ show eChatId] &
+            param "message" .~ [iHelpMessage] &
+            param "random_id" .~ ["0"] &
+            param "access_token" .~ [iAccessKey] &
+            param "v" .~ [iApiVersion]
+      (code, _) <- Web.sendOptions address options
+      case code of
+        200 -> Logger.info iLogger "VK: Sent /help message"
+        _ ->
+          Logger.error iLogger $
+          "VK: Sending /help message failed: " <> pack (show code)
+    "/repeat" -> undefined
+    _ -> do
+      let options =
+            defaults & param "user_id" .~ [pack $ show eChatId] &
+            param "message" .~ [eMessage] &
+            param "random_id" .~ ["0"] &
+            param "access_token" .~ [iAccessKey] &
+            param "v" .~ [iApiVersion]
+      (code, _) <- Web.sendOptions address options
+      case code of
+        200 -> Logger.info iLogger "VK: Sent /help message"
+        _ ->
+          Logger.error iLogger $
+          "VK: Sending /help message failed: " <> pack (show code)
+processMessage _ _ = fail "VK: Used processMessage in a wrong place"
