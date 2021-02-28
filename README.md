@@ -33,6 +33,6 @@ vk:
 ## TODOS
 - [x] Logger
 - [ ] Bot
-  - [ ] Telegram
+  - [x] Telegram
   - [ ] VK
 - [ ] tests
