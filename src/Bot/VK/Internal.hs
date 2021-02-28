@@ -4,102 +4,56 @@
 module Bot.VK.Internal where
 
 import Bot
+  ( ChatId
+  , Event(EventMedia, EventMessage, EventQuery)
+  , Media(MediaAudio, MediaDocument, MediaPhoto, MediaSticker,
+      MediaVideo)
+  )
 import Control.Lens ((&), (.~))
-import Data.Aeson
-import Data.Maybe (fromJust, isJust, mapMaybe)
+import Data.Aeson (FromJSON(parseJSON), (.:), (.:?), withObject)
+import Data.Maybe (fromJust, fromMaybe, isJust, mapMaybe)
 import Data.Text (Text, pack)
-import Network.Wreq
 
 --------------------------------------------------------------------------------
+-- query is not defined yet
 updateToEvent :: Update -> Maybe Event
 updateToEvent Update {..}
-  | isJust uPayload = Just $ EventQuery uUserId "" (fromJust uPayload)
-  | isJust uAttachments =
-    attachmentToEvent uUserId uBody (fromJust uAttachments)
-  | otherwise = Just $ EventMessage uUserId uBody
-
---------------------------------------------------------------------------------
-attachmentToEvent :: ChatId -> Text -> [Attachment] -> Maybe Event
-attachmentToEvent _ _ [] = Nothing
-attachmentToEvent chatId message attachs =
-  Just $ EventMedia chatId message (mapMaybe attachmentToMedia attachs)
+  | isJust $ uMessage uObject =
+    let message = fromJust $ uMessage uObject
+     in case mAttachments message of
+          [] -> Just $ EventMessage (mFromId message) (mText message)
+          attachs ->
+            Just $
+            EventMedia
+              (mFromId message)
+              (mText message)
+              (mapMaybe attachmentToMedia attachs)
+  | otherwise = Nothing
 
 attachmentToMedia :: Attachment -> Maybe Media
 attachmentToMedia Attachment {..}
-  | isJust aPhoto =
-    case fAccessKey (fromJust aPhoto) of
-      Nothing ->
-        Just $
-        MediaPhoto
-          ("photo" <> pack (show $ fOwnerId $ fromJust aPhoto) <> "_" <>
-           pack (show $ fId $ fromJust aPhoto))
-          ""
-      Just key ->
-        Just $
-        MediaPhoto
-          ("photo" <> pack (show $ fOwnerId $ fromJust aPhoto) <> "_" <>
-           pack (show $ fId $ fromJust aPhoto) <>
-           "_" <>
-           key)
-          ""
-  | isJust aAudio =
-    case fAccessKey (fromJust aAudio) of
-      Nothing ->
-        Just $
-        MediaAudio
-          ("audio" <> pack (show $ fOwnerId $ fromJust aAudio) <> "_" <>
-           pack (show $ fId $ fromJust aAudio))
-          ""
-      Just key ->
-        Just $
-        MediaAudio
-          ("audio" <> pack (show $ fOwnerId $ fromJust aAudio) <> "_" <>
-           pack (show $ fId $ fromJust aAudio) <>
-           "_" <>
-           key)
-          ""
+  | isJust aPhoto = Just $ MediaPhoto (fileToText "photo" (fromJust aPhoto)) ""
+  | isJust aAudio = Just $ MediaAudio (fileToText "audio" (fromJust aAudio)) ""
   | isJust aDocument =
-    case fAccessKey (fromJust aDocument) of
-      Nothing ->
-        Just $
-        MediaDocument
-          ("doc" <> pack (show $ fOwnerId $ fromJust aDocument) <> "_" <>
-           pack (show $ fId $ fromJust aDocument))
-          ""
-      Just key ->
-        Just $
-        MediaDocument
-          ("doc" <> pack (show $ fOwnerId $ fromJust aDocument) <> "_" <>
-           pack (show $ fId $ fromJust aDocument) <>
-           "_" <>
-           key)
-          ""
-  | isJust aVideo =
-    case fAccessKey (fromJust aVideo) of
-      Nothing ->
-        Just $
-        MediaVideo
-          ("video" <> pack (show $ fOwnerId $ fromJust aVideo) <> "_" <>
-           pack (show $ fId $ fromJust aVideo))
-          ""
-      Just key ->
-        Just $
-        MediaVideo
-          ("video" <> pack (show $ fOwnerId $ fromJust aVideo) <> "_" <>
-           pack (show $ fId $ fromJust aVideo) <>
-           "_" <>
-           key)
-          ""
+    Just $ MediaDocument (fileToText "doc" (fromJust aDocument)) ""
+  | isJust aVideo = Just $ MediaVideo (fileToText "video" (fromJust aVideo)) ""
   | isJust aSticker =
-    Just $ MediaSticker $ pack $ show $ sId $ fromJust aSticker
+    Just $ MediaSticker (pack $ show $ sId $ fromJust aSticker)
   | otherwise = Nothing
+
+fileToText :: Text -> File -> Text
+fileToText name File {..} =
+  case fAccessKey of
+    Nothing -> name <> pack (show fOwnerId) <> "_" <> pack (show fId)
+    Just key ->
+      name <> pack (show fOwnerId) <> "_" <> pack (show fId) <> "_" <> key
 
 --------------------------------------------------------------------------------
 data LongPollServer =
   LongPollServer
     { lpsKey :: Text
     , lpsServer :: Text
-    , lpsTS :: Int
+    , lpsTS :: Text
     }
   deriving (Show)
 
@@ -133,22 +87,42 @@ instance FromJSON Updates where
       Updates <$> o .: "updates"
 
 --------------------------------------------------------------------------------
-data Update =
+newtype Update =
   Update
-    { uBody :: Text
-    , uAttachments :: Maybe [Attachment]
-    , uUserId :: Int
-    , uType :: Text
-    , uPayload :: Maybe Text
+    { uObject :: UObject
     }
   deriving (Show)
 
 instance FromJSON Update where
   parseJSON =
     withObject "FromJSON Bot.VK.Internal.Update" $ \o ->
-      Update <$> o .: "body" <*> o .:? "attachments" <*> o .: "user_id" <*>
-      o .: "type" <*>
-      o .:? "payload"
+      Update <$> o .: "object"
+
+--------------------------------------------------------------------------------
+newtype UObject =
+  UObject
+    { uMessage :: Maybe Message
+    }
+  deriving (Show)
+
+instance FromJSON UObject where
+  parseJSON =
+    withObject "FromJSON Bot.VK.Internal.UObject" $ \o ->
+      UObject <$> o .:? "message"
+
+--------------------------------------------------------------------------------
+data Message =
+  Message
+    { mFromId :: Int
+    , mText :: Text
+    , mAttachments :: [Attachment]
+    }
+  deriving (Show)
+
+instance FromJSON Message where
+  parseJSON =
+    withObject "FromJSON Bot.VK.Internal.Message" $ \o ->
+      Message <$> o .: "from_id" <*> o .: "text" <*> o .: "attachments"
 
 --------------------------------------------------------------------------------
 data Attachment =
@@ -191,4 +165,5 @@ newtype Sticker =
 
 instance FromJSON Sticker where
   parseJSON =
-    withObject "FromJSON Bot.VK.Internal.Sticker" $ \o -> Sticker <$> o .: "id"
+    withObject "FromJSON Bot.VK.Internal.Sticker" $ \o ->
+      Sticker <$> o .: "sticker_id"

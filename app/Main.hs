@@ -4,6 +4,7 @@ module Main where
 
 import qualified Bot
 import qualified Bot.Telegram as Telegram
+import qualified Bot.VK as VK
 import Control.Monad (forever, when)
 import Data.Maybe (fromJust, isNothing)
 import Data.Text (Text, unpack)
@@ -40,7 +41,10 @@ main = do
           handle <-
             Telegram.new logger (cBot config) (fromJust $ cTelegram config)
           forever $ Bot.getEvents handle >>= Bot.processEvents handle
-        "vk" -> undefined
+        "vk" -> do
+          when (isNothing $ cVK config) $ fail "No 'vk' in config file"
+          handle <- VK.new logger (cBot config) (fromJust $ cVK config)
+          forever $ Bot.getEvents handle >>= Bot.processEvents handle
         _ -> fail $ "Unknown bot instance: " ++ unpack botInstance
 
 readLogger :: Config -> IO Logger.Handle
@@ -57,10 +61,12 @@ data Config =
     { cLogger :: Logger.Config
     , cBot :: Bot.Config
     , cTelegram :: Maybe Telegram.IConfig
+    , cVK :: Maybe VK.IConfig
     }
   deriving (Show)
 
 instance FromJSON Config where
   parseJSON =
     withObject "FromJSON Main.Config" $ \o ->
-      Config <$> o .: "logger" <*> o .: "bot" <*> o .:? "telegram"
+      Config <$> o .: "logger" <*> o .: "bot" <*> o .:? "telegram" <*>
+      o .:? "vk"

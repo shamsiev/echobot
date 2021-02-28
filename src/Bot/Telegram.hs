@@ -217,7 +217,7 @@ processMedia IHandle {..} EventMedia {..} = do
       200 -> Logger.info iLogger "Telegram: Sent media"
       _ ->
         Logger.error iLogger $
-        "Telegram: Sending message failed: " <> pack (show code)
+        "Telegram: Sending media failed: " <> pack (show code)
 processMedia _ _ = fail "Telegram: processMedia used in a wrong place"
 
 --------------------------------------------------------------------------------
