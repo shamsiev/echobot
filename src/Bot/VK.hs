@@ -6,7 +6,7 @@ module Bot.VK where
 import Bot
 import Bot.VK.Internal
 import Control.Lens ((&), (.~))
-import Control.Monad (replicateM_)
+import Control.Monad (replicateM_, void, when)
 import Data.Aeson
   ( ToJSON(..)
   , Value
@@ -133,9 +133,9 @@ vkProcessEvents :: IHandle -> [Event] -> IO ()
 vkProcessEvents handle [] = return ()
 vkProcessEvents handle (e:events) = do
   case e of
-    EventMessage {..} -> processMessage handle e
-    EventMedia {..} -> print "media event"
-    EventQuery {..} -> processQuery handle e
+    EventMessage {} -> processMessage handle e
+    EventMedia {} -> processMedia handle e
+    EventQuery {} -> processQuery handle e
   vkProcessEvents handle events
 
 --------------------------------------------------------------------------------
@@ -258,6 +258,59 @@ instance ToJSON ButtonAction where
     object ["type" .= baType, "label" .= baLabel, "payload" .= baPayload]
 
 --------------------------------------------------------------------------------
+processMedia :: IHandle -> Event -> IO ()
+processMedia IHandle {..} EventMedia {..} = do
+  Logger.info iLogger $ "VK: Processing media for: " <> pack (show eChatId)
+  counters <- readIORef iCounters
+  let counter = fromMaybe iDefaultRepeat $ M.lookup eChatId counters
+  Logger.debug iLogger $ "VK: Current repeat count: " <> pack (show counter)
+  let address = "https://api.vk.com/method/messages.send"
+  when (null eMedia) $ void (Logger.warning iLogger "VK: Empty media")
+  case head eMedia of
+    MediaSticker stickerId -> do
+      let options =
+            defaults & param "user_id" .~ [pack $ show eChatId] &
+            param "message" .~ [""] &
+            param "sticker_id" .~ [stickerId] &
+            param "random_id" .~ ["0"] &
+            param "access_token" .~ [iAccessKey] &
+            param "v" .~ [iApiVersion]
+      replicateM_ counter $ do
+        (code, _) <- Web.sendOptions address options
+        case code of
+          200 -> Logger.info iLogger "VK: Send media"
+          _ ->
+            Logger.error iLogger $
+            "VK: Sending media failed: " <> pack (show code)
+    _ -> do
+      let options =
+            defaults & param "user_id" .~ [pack $ show eChatId] &
+            param "attachment" .~ [foldMedia eMedia] &
+            param "message" .~ [eMessage] &
+            param "random_id" .~ ["0"] &
+            param "access_token" .~ [iAccessKey] &
+            param "v" .~ [iApiVersion]
+      replicateM_ counter $ do
+        (code, body) <- Web.sendOptions address options
+        print body
+        case code of
+          200 -> Logger.info iLogger "VK: Send media"
+          _ ->
+            Logger.error iLogger $
+            "VK: Sending media failed: " <> pack (show code)
+processMedia _ _ = fail "VK: Used processMedia in a wrong place"
+
+foldMedia :: [Media] -> Text
+foldMedia [] = ""
+foldMedia (m:ms) =
+  case m of
+    MediaDocument f _ -> f <> "," <> foldMedia ms
+    MediaPhoto f _ -> f <> "," <> foldMedia ms
+    MediaVideo f _ -> f <> "," <> foldMedia ms
+    MediaAudio f _ -> f <> "," <> foldMedia ms
+    _ -> foldMedia ms
+
+--------------------------------------------------------------------------------
 processQuery :: IHandle -> Event -> IO ()
 processQuery IHandle {..} EventQuery {..} = do
   Logger.info iLogger $ "VK: Setting repeat counter for " <> pack (show eChatId)
@@ -268,4 +321,4 @@ processQuery IHandle {..} EventQuery {..} = do
   let updatedCounters = M.insert eChatId newCounter counters
   writeIORef iCounters updatedCounters
   Logger.info iLogger "VK: Set counter"
-processQuery _ _ = return ()
+processQuery _ _ = fail "VK: Used processedQuery in a wrong place"
