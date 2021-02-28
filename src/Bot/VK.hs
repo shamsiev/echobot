@@ -135,7 +135,7 @@ vkProcessEvents handle (e:events) = do
   case e of
     EventMessage {..} -> processMessage handle e
     EventMedia {..} -> print "media event"
-    EventQuery {..} -> print "media event"
+    EventQuery {..} -> processQuery handle e
   vkProcessEvents handle events
 
 --------------------------------------------------------------------------------
@@ -176,18 +176,22 @@ processMessage IHandle {..} EventMessage {..} = do
           Logger.error iLogger $
           "VK: Sending /repeat message failed: " <> pack (show code)
     _ -> do
+      counters <- readIORef iCounters
+      let counter = fromMaybe iDefaultRepeat $ M.lookup eChatId counters
+      Logger.debug iLogger $ "VK: Current repeat count: " <> pack (show counter)
       let options =
             defaults & param "user_id" .~ [pack $ show eChatId] &
             param "message" .~ [eMessage] &
             param "random_id" .~ ["0"] &
             param "access_token" .~ [iAccessKey] &
             param "v" .~ [iApiVersion]
-      (code, _) <- Web.sendOptions address options
-      case code of
-        200 -> Logger.info iLogger "VK: Sent message"
-        _ ->
-          Logger.error iLogger $
-          "VK: Sending message failed: " <> pack (show code)
+      replicateM_ counter $ do
+        (code, _) <- Web.sendOptions address options
+        case code of
+          200 -> Logger.info iLogger "VK: Sent message"
+          _ ->
+            Logger.error iLogger $
+            "VK: Sending message failed: " <> pack (show code)
 processMessage _ _ = fail "VK: Used processMessage in a wrong place"
 
 keyboard :: Keyboard
@@ -252,3 +256,16 @@ data ButtonAction =
 instance ToJSON ButtonAction where
   toJSON ButtonAction {..} =
     object ["type" .= baType, "label" .= baLabel, "payload" .= baPayload]
+
+--------------------------------------------------------------------------------
+processQuery :: IHandle -> Event -> IO ()
+processQuery IHandle {..} EventQuery {..} = do
+  Logger.info iLogger $ "VK: Setting repeat counter for " <> pack (show eChatId)
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "VK: Current counters" <> pack (show counters)
+  let newCounter = (read (unpack eUserdata) :: Counter)
+  Logger.debug iLogger $ "VK: Trying to set counter to " <> eUserdata
+  let updatedCounters = M.insert eChatId newCounter counters
+  writeIORef iCounters updatedCounters
+  Logger.info iLogger "VK: Set counter"
+processQuery _ _ = return ()

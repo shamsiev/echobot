@@ -15,13 +15,15 @@ import Data.Maybe (fromJust, fromMaybe, isJust, mapMaybe)
 import Data.Text (Text, pack)
 
 --------------------------------------------------------------------------------
--- query is not defined yet
 updateToEvent :: Update -> Maybe Event
 updateToEvent Update {..}
   | isJust $ uMessage uObject =
     let message = fromJust $ uMessage uObject
      in case mAttachments message of
-          [] -> Just $ EventMessage (mFromId message) (mText message)
+          [] ->
+            case mPayload message of
+              Nothing -> Just $ EventMessage (mFromId message) (mText message)
+              Just _ -> Just $ EventQuery (mFromId message) "" (mText message)
           attachs ->
             Just $
             EventMedia
@@ -116,13 +118,15 @@ data Message =
     { mFromId :: Int
     , mText :: Text
     , mAttachments :: [Attachment]
+    , mPayload :: Maybe Text
     }
   deriving (Show)
 
 instance FromJSON Message where
   parseJSON =
     withObject "FromJSON Bot.VK.Internal.Message" $ \o ->
-      Message <$> o .: "from_id" <*> o .: "text" <*> o .: "attachments"
+      Message <$> o .: "from_id" <*> o .: "text" <*> o .: "attachments" <*>
+      o .:? "payload"
 
 --------------------------------------------------------------------------------
 data Attachment =
