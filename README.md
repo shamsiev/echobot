@@ -32,7 +32,7 @@ vk:
 
 ## TODOS
 - [x] Logger
-- [ ] Bot
-  - [x] Telegram
-  - [ ] VK
+- [x] Telegram
+- [x] VK
 - [ ] tests
+- [ ] Docs
