@@ -39,6 +39,7 @@ attachmentToMedia Attachment {..}
         MediaPhoto
           ("photo" <> pack (show $ fOwnerId $ fromJust aPhoto) <> "_" <>
            pack (show $ fId $ fromJust aPhoto) <>
+           "_" <>
            key)
           ""
   | isJust aAudio =
@@ -54,6 +55,7 @@ attachmentToMedia Attachment {..}
         MediaAudio
           ("audio" <> pack (show $ fOwnerId $ fromJust aAudio) <> "_" <>
            pack (show $ fId $ fromJust aAudio) <>
+           "_" <>
            key)
           ""
   | isJust aDocument =
@@ -69,6 +71,7 @@ attachmentToMedia Attachment {..}
         MediaDocument
           ("doc" <> pack (show $ fOwnerId $ fromJust aDocument) <> "_" <>
            pack (show $ fId $ fromJust aDocument) <>
+           "_" <>
            key)
           ""
   | isJust aVideo =
@@ -84,6 +87,7 @@ attachmentToMedia Attachment {..}
         MediaVideo
           ("video" <> pack (show $ fOwnerId $ fromJust aVideo) <> "_" <>
            pack (show $ fId $ fromJust aVideo) <>
+           "_" <>
            key)
           ""
   | isJust aSticker =

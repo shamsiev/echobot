@@ -20,6 +20,7 @@ main =
     test3
     test4
     test5
+    test6
 
 --------------------------------------------------------------------------------
 test1 :: SpecWith ()
@@ -318,28 +319,28 @@ test6 =
   describe "Bot.VK.Internal.attachmentToMedia" $ do
     it "reads MediaPhoto without key" $ do
       Bot.VK.Internal.attachmentToMedia photoAttachment `shouldBe`
-        Just (MediaPhoto "photo1337_7331" "")
+        Just (MediaPhoto "photo7331_1337" "")
     it "reads MediaPhoto with key" $ do
       Bot.VK.Internal.attachmentToMedia photoAttachment' `shouldBe`
-        Just (MediaPhoto "photo1337_7331_key" "")
+        Just (MediaPhoto "photo7331_1337_key" "")
     it "reads MediaAudio without key" $ do
       Bot.VK.Internal.attachmentToMedia audioAttachment `shouldBe`
-        Just (MediaAudio "audio1337_7331" "")
+        Just (MediaAudio "audio7331_1337" "")
     it "reads MediaAudio with key" $ do
       Bot.VK.Internal.attachmentToMedia audioAttachment' `shouldBe`
-        Just (MediaAudio "audio1337_7331_key" "")
+        Just (MediaAudio "audio7331_1337_key" "")
     it "reads MediaDocument without key" $ do
       Bot.VK.Internal.attachmentToMedia docAttachment `shouldBe`
-        Just (MediaDocument "doc1337_7331" "")
+        Just (MediaDocument "doc7331_1337" "")
     it "reads MediaDucoment with key" $ do
       Bot.VK.Internal.attachmentToMedia docAttachment' `shouldBe`
-        Just (MediaDocument "doc1337_7331_key" "")
+        Just (MediaDocument "doc7331_1337_key" "")
     it "reads MediaVideo without key" $ do
       Bot.VK.Internal.attachmentToMedia videoAttachment `shouldBe`
-        Just (MediaVideo "video1337_7331" "")
+        Just (MediaVideo "video7331_1337" "")
     it "reads MediaVideo with key" $ do
       Bot.VK.Internal.attachmentToMedia videoAttachment' `shouldBe`
-        Just (MediaVideo "video1337_7331_key" "")
+        Just (MediaVideo "video7331_1337_key" "")
     it "reads MediaSticker" $ do
       Bot.VK.Internal.attachmentToMedia stickerAttachment `shouldBe`
         Just (MediaSticker "1337")
