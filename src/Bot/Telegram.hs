@@ -122,7 +122,7 @@ tgGetEvents IHandle {..} = do
           Logger.debug iLogger $
             "Telegram: Current events: " <> pack (show events)
           return events
-    code -> fail $ "Telegram: Request failed: " ++ show code
+    _ -> fail $ "Telegram: Request failed: " ++ show status
 
 --------------------------------------------------------------------------------
 tgProcessEvents :: IHandle -> [Event] -> IO ()
@@ -209,8 +209,8 @@ processMedia IHandle {..} EventMedia {..} = do
     "Telegram: Current repeat count: " <> pack (show counter)
   let address =
         "https://api.telegram.org/bot" ++
-        unpack iToken ++ methodNameFromMedia eMedia
-  let json = jsonFromMedia eChatId eMedia
+        unpack iToken ++ methodNameFromMedia (head eMedia)
+  let json = jsonFromMedia eChatId (head eMedia)
   replicateM_ counter $ do
     (code, _) <- Web.sendJSON address json
     case code of

@@ -3,7 +3,15 @@ module Web where
 import Control.Lens ((^.))
 import Data.Aeson (Value, object)
 import Data.ByteString.Lazy.Internal (ByteString)
-import Network.Wreq (post, responseBody, responseStatus, statusCode)
+import Network.Wreq
+  ( Options
+  , defaults
+  , getWith
+  , post
+  , responseBody
+  , responseStatus
+  , statusCode
+  )
 
 --------------------------------------------------------------------------------
 type Address = String
@@ -25,3 +33,15 @@ sendJSON address json = do
 --------------------------------------------------------------------------------
 emptyJSON :: JSON
 emptyJSON = object []
+
+--------------------------------------------------------------------------------
+sendOptions :: Address -> Options -> IO (StatusCode, RequestBody)
+sendOptions address options = do
+  response <- getWith options address
+  let code = response ^. responseStatus . statusCode
+  let body = response ^. responseBody
+  return (code, body)
+
+--------------------------------------------------------------------------------
+emptyOptions :: Options
+emptyOptions = defaults

@@ -35,7 +35,7 @@ data Event
       }
   | EventMedia
       { eChatId :: ChatId
-      , eMedia :: Media
+      , eMedia :: [Media]
       }
   | EventQuery
       { eChatId :: ChatId
