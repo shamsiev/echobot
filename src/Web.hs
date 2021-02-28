@@ -32,17 +32,9 @@ sendJSON address json = do
   return (code, body)
 
 --------------------------------------------------------------------------------
-emptyJSON :: JSON
-emptyJSON = object []
-
---------------------------------------------------------------------------------
 sendOptions :: Address -> Options -> IO (StatusCode, RequestBody)
 sendOptions address options = do
   response <- getWith options address
   let code = response ^. responseStatus . statusCode
   let body = response ^. responseBody
   return (code, body)
-
---------------------------------------------------------------------------------
-emptyOptions :: Options
-emptyOptions = defaults
