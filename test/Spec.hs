@@ -7,6 +7,7 @@ import Bot
   )
 import qualified Bot.Telegram
 import qualified Bot.Telegram.Internal
+import qualified Bot.VK.Internal
 import Data.Aeson (KeyValue((.=)), object)
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, hspec, it, shouldBe)
@@ -29,25 +30,25 @@ test1 =
         Just (EventMessage 1337 "text")
     it "returns EventMedia MediaSticker" $ do
       Bot.Telegram.Internal.messageToEvent stickerMessage `shouldBe`
-        Just (EventMedia 1337 (MediaSticker "file"))
+        Just (EventMedia 1337 "" [MediaSticker "file"])
     it "returns EventMedia MediaAnimation" $ do
       Bot.Telegram.Internal.messageToEvent animationMessage `shouldBe`
-        Just (EventMedia 1337 (MediaAnimation "file" "caption"))
+        Just (EventMedia 1337 "" [MediaAnimation "file" "caption"])
     it "returns EventMedia MediaDocument" $ do
       Bot.Telegram.Internal.messageToEvent documentMessage `shouldBe`
-        Just (EventMedia 1337 (MediaDocument "file" "caption"))
+        Just (EventMedia 1337 "" [MediaDocument "file" "caption"])
     it "returns EventMedia MediaPhoto" $ do
       Bot.Telegram.Internal.messageToEvent photoMessage `shouldBe`
-        Just (EventMedia 1337 (MediaPhoto "file" "caption"))
+        Just (EventMedia 1337 "" [MediaPhoto "file" "caption"])
     it "returns EventMedia MediaVideo" $ do
       Bot.Telegram.Internal.messageToEvent videoMessage `shouldBe`
-        Just (EventMedia 1337 (MediaVideo "file" "caption"))
+        Just (EventMedia 1337 "" [MediaVideo "file" "caption"])
     it "returns EventMedia MediaAudio" $ do
       Bot.Telegram.Internal.messageToEvent audioMessage `shouldBe`
-        Just (EventMedia 1337 (MediaAudio "file" "caption"))
+        Just (EventMedia 1337 "" [MediaAudio "file" "caption"])
     it "returns EventMedia MediaVoice" $ do
       Bot.Telegram.Internal.messageToEvent voiceMessage `shouldBe`
-        Just (EventMedia 1337 (MediaVoice "file" "caption"))
+        Just (EventMedia 1337 "" [MediaVoice "file" "caption"])
     it "returns Nothing" $ do
       Bot.Telegram.Internal.messageToEvent invalidMessage `shouldBe` Nothing
 
@@ -310,3 +311,185 @@ test5 =
           , "voice" .= ("voice" :: Text)
           , "caption" .= ("caption" :: Text)
           ]
+
+--------------------------------------------------------------------------------
+test6 :: SpecWith ()
+test6 =
+  describe "Bot.VK.Internal.attachmentToMedia" $ do
+    it "reads MediaPhoto without key" $ do
+      Bot.VK.Internal.attachmentToMedia photoAttachment `shouldBe`
+        Just (MediaPhoto "photo1337_7331" "")
+    it "reads MediaPhoto with key" $ do
+      Bot.VK.Internal.attachmentToMedia photoAttachment' `shouldBe`
+        Just (MediaPhoto "photo1337_7331_key" "")
+    it "reads MediaAudio without key" $ do
+      Bot.VK.Internal.attachmentToMedia audioAttachment `shouldBe`
+        Just (MediaAudio "audio1337_7331" "")
+    it "reads MediaAudio with key" $ do
+      Bot.VK.Internal.attachmentToMedia audioAttachment' `shouldBe`
+        Just (MediaAudio "audio1337_7331_key" "")
+    it "reads MediaDocument without key" $ do
+      Bot.VK.Internal.attachmentToMedia docAttachment `shouldBe`
+        Just (MediaDocument "doc1337_7331" "")
+    it "reads MediaDucoment with key" $ do
+      Bot.VK.Internal.attachmentToMedia docAttachment' `shouldBe`
+        Just (MediaDocument "doc1337_7331_key" "")
+    it "reads MediaVideo without key" $ do
+      Bot.VK.Internal.attachmentToMedia videoAttachment `shouldBe`
+        Just (MediaVideo "video1337_7331" "")
+    it "reads MediaVideo with key" $ do
+      Bot.VK.Internal.attachmentToMedia videoAttachment' `shouldBe`
+        Just (MediaVideo "video1337_7331_key" "")
+    it "reads MediaSticker" $ do
+      Bot.VK.Internal.attachmentToMedia stickerAttachment `shouldBe`
+        Just (MediaSticker "1337")
+    it "rejects InvalidMedia" $ do
+      Bot.VK.Internal.attachmentToMedia invalidAttachment `shouldBe` Nothing
+
+photoAttachment :: Bot.VK.Internal.Attachment
+photoAttachment =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aPhoto =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Nothing
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    , Bot.VK.Internal.aVideo = Nothing
+    }
+
+photoAttachment' :: Bot.VK.Internal.Attachment
+photoAttachment' =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aPhoto =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Just "key"
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    , Bot.VK.Internal.aVideo = Nothing
+    }
+
+audioAttachment :: Bot.VK.Internal.Attachment
+audioAttachment =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aAudio =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Nothing
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    , Bot.VK.Internal.aVideo = Nothing
+    }
+
+audioAttachment' :: Bot.VK.Internal.Attachment
+audioAttachment' =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aAudio =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Just "key"
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    , Bot.VK.Internal.aVideo = Nothing
+    }
+
+docAttachment :: Bot.VK.Internal.Attachment
+docAttachment =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aDocument =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Nothing
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aVideo = Nothing
+    }
+
+docAttachment' :: Bot.VK.Internal.Attachment
+docAttachment' =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aDocument =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Just "key"
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aVideo = Nothing
+    }
+
+videoAttachment :: Bot.VK.Internal.Attachment
+videoAttachment =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aVideo =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Nothing
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    }
+
+videoAttachment' :: Bot.VK.Internal.Attachment
+videoAttachment' =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aVideo =
+        Just
+          Bot.VK.Internal.File
+            { Bot.VK.Internal.fAccessKey = Just "key"
+            , Bot.VK.Internal.fId = 1337
+            , Bot.VK.Internal.fOwnerId = 7331
+            }
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    }
+
+stickerAttachment :: Bot.VK.Internal.Attachment
+stickerAttachment =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aVideo = Nothing
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Just $ Bot.VK.Internal.Sticker 1337
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    }
+
+invalidAttachment :: Bot.VK.Internal.Attachment
+invalidAttachment =
+  Bot.VK.Internal.Attachment
+    { Bot.VK.Internal.aVideo = Nothing
+    , Bot.VK.Internal.aPhoto = Nothing
+    , Bot.VK.Internal.aSticker = Nothing
+    , Bot.VK.Internal.aAudio = Nothing
+    , Bot.VK.Internal.aDocument = Nothing
+    }

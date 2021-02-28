@@ -4,21 +4,91 @@
 module Bot.VK.Internal where
 
 import Bot
+import Control.Lens ((&), (.~))
 import Data.Aeson
-import Data.Maybe (fromJust, isJust)
-import Data.Text (Text)
+import Data.Maybe (fromJust, isJust, mapMaybe)
+import Data.Text (Text, pack)
+import Network.Wreq
 
 --------------------------------------------------------------------------------
 updateToEvent :: Update -> Maybe Event
 updateToEvent Update {..}
   | isJust uPayload = Just $ EventQuery uUserId "" (fromJust uPayload)
   | isJust uAttachments =
-    Just $ attachmentToEvent uUserId uBody (fromJust uAttachments)
+    attachmentToEvent uUserId uBody (fromJust uAttachments)
   | otherwise = Just $ EventMessage uUserId uBody
 
 --------------------------------------------------------------------------------
-attachmentToEvent :: ChatId -> Text -> [Attachment] -> Event
-attachmentToEvent = undefined
+attachmentToEvent :: ChatId -> Text -> [Attachment] -> Maybe Event
+attachmentToEvent _ _ [] = Nothing
+attachmentToEvent chatId message attachs =
+  Just $ EventMedia chatId message (mapMaybe attachmentToMedia attachs)
+
+attachmentToMedia :: Attachment -> Maybe Media
+attachmentToMedia Attachment {..}
+  | isJust aPhoto =
+    case fAccessKey (fromJust aPhoto) of
+      Nothing ->
+        Just $
+        MediaPhoto
+          ("photo" <> pack (show $ fOwnerId $ fromJust aPhoto) <> "_" <>
+           pack (show $ fId $ fromJust aPhoto))
+          ""
+      Just key ->
+        Just $
+        MediaPhoto
+          ("photo" <> pack (show $ fOwnerId $ fromJust aPhoto) <> "_" <>
+           pack (show $ fId $ fromJust aPhoto) <>
+           key)
+          ""
+  | isJust aAudio =
+    case fAccessKey (fromJust aAudio) of
+      Nothing ->
+        Just $
+        MediaAudio
+          ("audio" <> pack (show $ fOwnerId $ fromJust aAudio) <> "_" <>
+           pack (show $ fId $ fromJust aAudio))
+          ""
+      Just key ->
+        Just $
+        MediaAudio
+          ("audio" <> pack (show $ fOwnerId $ fromJust aAudio) <> "_" <>
+           pack (show $ fId $ fromJust aAudio) <>
+           key)
+          ""
+  | isJust aDocument =
+    case fAccessKey (fromJust aDocument) of
+      Nothing ->
+        Just $
+        MediaDocument
+          ("doc" <> pack (show $ fOwnerId $ fromJust aDocument) <> "_" <>
+           pack (show $ fId $ fromJust aDocument))
+          ""
+      Just key ->
+        Just $
+        MediaDocument
+          ("doc" <> pack (show $ fOwnerId $ fromJust aDocument) <> "_" <>
+           pack (show $ fId $ fromJust aDocument) <>
+           key)
+          ""
+  | isJust aVideo =
+    case fAccessKey (fromJust aVideo) of
+      Nothing ->
+        Just $
+        MediaVideo
+          ("video" <> pack (show $ fOwnerId $ fromJust aVideo) <> "_" <>
+           pack (show $ fId $ fromJust aVideo))
+          ""
+      Just key ->
+        Just $
+        MediaVideo
+          ("video" <> pack (show $ fOwnerId $ fromJust aVideo) <> "_" <>
+           pack (show $ fId $ fromJust aVideo) <>
+           key)
+          ""
+  | isJust aSticker =
+    Just $ MediaSticker $ pack $ show $ sId $ fromJust aSticker
+  | otherwise = Nothing
 
 --------------------------------------------------------------------------------
 data LongPollServer =
@@ -82,8 +152,6 @@ data Attachment =
     { aPhoto :: Maybe File
     , aAudio :: Maybe File
     , aSticker :: Maybe Sticker
-    , aVoice :: Maybe File
-    , aAnimation :: Maybe File
     , aDocument :: Maybe File
     , aVideo :: Maybe File
     }
@@ -93,8 +161,6 @@ instance FromJSON Attachment where
   parseJSON =
     withObject "FromJSON Bot.VK.Internal.Attachment" $ \o ->
       Attachment <$> o .:? "photo" <*> o .:? "audio" <*> o .:? "sticker" <*>
-      o .:? "doc" <*>
-      o .:? "doc" <*>
       o .:? "doc" <*>
       o .:? "video"
 

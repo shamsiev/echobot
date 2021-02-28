@@ -28,36 +28,42 @@ messageToEvent :: Message -> Maybe Event
 messageToEvent Message {..}
   | isJust mText = Just $ EventMessage (cId mChat) (fromJust mText)
   | isJust mSticker =
-    Just $ EventMedia (cId mChat) [MediaSticker (fId $ fromJust mSticker)]
+    Just $ EventMedia (cId mChat) "" [MediaSticker (fId $ fromJust mSticker)]
   | isJust mAnimation =
     Just $
     EventMedia
       (cId mChat)
+      ""
       [MediaAnimation (fId $ fromJust mAnimation) (fromMaybe "" mCaption)]
   | isJust mDocument =
     Just $
     EventMedia
       (cId mChat)
+      ""
       [MediaDocument (fId $ fromJust mDocument) (fromMaybe "" mCaption)]
   | isJust mPhoto =
     Just $
     EventMedia
       (cId mChat)
+      ""
       [MediaPhoto (fId $ head $ fromJust mPhoto) (fromMaybe "" mCaption)]
   | isJust mVideo =
     Just $
     EventMedia
       (cId mChat)
+      ""
       [MediaVideo (fId $ fromJust mVideo) (fromMaybe "" mCaption)]
   | isJust mAudio =
     Just $
     EventMedia
       (cId mChat)
+      ""
       [MediaAudio (fId $ fromJust mAudio) (fromMaybe "" mCaption)]
   | isJust mVoice =
     Just $
     EventMedia
       (cId mChat)
+      ""
       [MediaVoice (fId $ fromJust mVoice) (fromMaybe "" mCaption)]
   | otherwise = Nothing
 
