@@ -1,11 +1,11 @@
-# ECHOBOT - The bot that echoes
+# ECHOBOT
 
 ## Usage
 - Clone this repository: `git clone https://github.com/shamsiev/echobot`
 - Move to the project's directory: `cd echobot`
 - Build the project: `stack build`
-- Create `config.yaml` file (see [configuration file example](#configuration-file-example))
-- Run bot: stack run
+- Create `yaml` config file (see [configuration file example](#configuration-file-example))
+- Run bot: `stack run [config file path]`
 
 ## <a id="configuration-file-example"></a> Configuration file example ##
 ```yaml

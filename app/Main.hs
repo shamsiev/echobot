@@ -1,11 +1,12 @@
-{-# LANGUAGE RecordWildCards #-}
+-- {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import qualified Bot
 import qualified Bot.Telegram as Telegram
-import Control.Monad (forever)
+import Control.Monad (forever, when)
+import Data.Maybe (fromJust, isNothing)
 import Data.Text (Text, unpack)
 import Data.Yaml
   ( FromJSON(parseJSON)
@@ -19,23 +20,37 @@ import Data.Yaml
 import qualified Logger
 import qualified Logger.FileLogger as FileLogger
 import qualified Logger.StdLogger as StdLogger
+import System.Environment (getArgs)
 
 --------------------------------------------------------------------------------
 main :: IO ()
 main = do
-  Config {..} <-
-    either (fail . prettyPrintParseException) return =<<
-    (decodeFileEither "config.yaml" :: IO (Either ParseException Config))
-  case Logger.cType cLogger of
-    "console" -> do
-      logger <- StdLogger.new cLogger
-      case cTelegram of
-        Nothing -> fail "AJOIASJFIO??)))"
-        Just tg -> do
-          handle <- Telegram.new logger cBot tg
-          forever $ Bot.getEvents handle >>= (handle `Bot.processEvents`)
-    "file" -> undefined
-    loggerType -> fail $ "Unknown logger type: " ++ unpack loggerType
+  args <- getArgs
+  case args of
+    [] -> return ()
+    (configPath:_) -> do
+      config <-
+        either (fail . prettyPrintParseException) return =<<
+        (decodeFileEither configPath :: IO (Either ParseException Config))
+      logger <- readLogger config
+      let botInstance = Bot.cInstance (cBot config)
+      case botInstance of
+        "telegram" -> do
+          when (isNothing $ cTelegram config) $
+            fail "No 'telegram' in config file"
+          handle <-
+            Telegram.new logger (cBot config) (fromJust $ cTelegram config)
+          forever $ Bot.getEvents handle >>= Bot.processEvents handle
+        "vk" -> undefined
+        _ -> fail $ "Unknown bot instance: " ++ unpack botInstance
+
+readLogger :: Config -> IO Logger.Handle
+readLogger config = do
+  let loggerType = Logger.cType (cLogger config)
+  case loggerType of
+    "console" -> StdLogger.new (cLogger config)
+    "file" -> FileLogger.new (cLogger config)
+    _ -> fail $ "Unknown logger type: " ++ unpack loggerType
 
 --------------------------------------------------------------------------------
 data Config =

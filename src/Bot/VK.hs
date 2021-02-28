@@ -23,3 +23,11 @@ data IHandle =
     , iCounters :: IORef Counters
     , iLogger :: Logger.Handle
     }
+
+--------------------------------------------------------------------------------
+vkGetEvents :: IHandle -> IO [Event]
+vkGetEvents = undefined
+
+--------------------------------------------------------------------------------
+vkProcessEvents :: IHandle -> [Event] -> IO ()
+vkProcessEvents = undefined
