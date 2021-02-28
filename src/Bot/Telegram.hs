@@ -3,7 +3,7 @@
 
 module Bot.Telegram where
 
-import Bot (ChatId, Event(..), Handle(..), Media(..))
+import Bot (ChatId, Config(..), Event(..), Handle(..), Media(..))
 import Bot.Telegram.Internal
   ( Update(uUpdateId)
   , Updates(uResult)
@@ -19,10 +19,19 @@ import Data.Aeson
   , toJSON
   )
 import Data.ByteString.Lazy.Internal (ByteString)
-import Data.IORef (IORef, readIORef, writeIORef)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text, pack, unpack)
+import Data.Yaml
+  ( FromJSON(parseJSON)
+  , ToJSON(toJSON)
+  , Value
+  , (.:)
+  , (.=)
+  , object
+  , withObject
+  )
 import qualified Logger
 import qualified Web
 
@@ -38,21 +47,47 @@ type Counter = Int
 type Counters = M.Map ChatId Counter
 
 --------------------------------------------------------------------------------
+data IConfig =
+  IConfig
+    { cToken :: Token
+    , cTimeout :: Timeout
+    }
+  deriving (Show)
+
+instance FromJSON IConfig where
+  parseJSON =
+    withObject "FromJSON Bot.Telegram.IConfig" $ \o ->
+      IConfig <$> o .: "token" <*> o .: "timeout"
+
+--------------------------------------------------------------------------------
 data IHandle =
   IHandle
     { iToken :: Token
+    , iTimeout :: Timeout
     , iHelpMessage :: Text
     , iRepeatMessage :: Text
     , iDefaultRepeat :: Counter
-    , iTimeout :: Timeout
     , iOffset :: IORef Offset
     , iCounters :: IORef Counters
     , iLogger :: Logger.Handle
     }
 
 --------------------------------------------------------------------------------
-new :: IHandle -> IO Handle
-new handle =
+new :: Logger.Handle -> Config -> IConfig -> IO Handle
+new logger config iConfig = do
+  offset <- newIORef 0
+  counters <- newIORef M.empty
+  let handle =
+        IHandle
+          { iToken = cToken iConfig
+          , iTimeout = cTimeout iConfig
+          , iHelpMessage = cHelpMessage config
+          , iRepeatMessage = cRepeatMessage config
+          , iDefaultRepeat = cRepeatCount config
+          , iOffset = offset
+          , iCounters = counters
+          , iLogger = logger
+          }
   return
     Handle
       {getEvents = tgGetEvents handle, processEvents = tgProcessEvents handle}

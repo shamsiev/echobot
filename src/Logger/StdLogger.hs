@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Logger.StdLogger
   ( new
@@ -9,13 +10,7 @@ import Data.Text (pack)
 import qualified Data.Text.IO as TextIO
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
-import Logger (Handle(..), Severity)
-
---------------------------------------------------------------------------------
-newtype Config =
-  Config
-    { cSeverity :: Severity
-    }
+import Logger (Config(..), Handle(..), Severity)
 
 --------------------------------------------------------------------------------
 new :: Config -> IO Handle

@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Logger.FileLogger
   ( new
@@ -9,29 +10,25 @@ import Data.Text (pack)
 import qualified Data.Text.IO as TextIO
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
-import Logger (Handle(..), Severity)
+import Logger (Config(..), Handle(..), Severity)
 import qualified System.IO as IO
-
---------------------------------------------------------------------------------
-data Config =
-  Config
-    { cSeverity :: Severity
-    , cFilePath :: FilePath
-    }
 
 --------------------------------------------------------------------------------
 new :: Config -> IO Handle
 new Config {..} =
-  return
-    Handle
-      { log =
-          \severity message ->
-            when (severity >= cSeverity) $ do
-              fh <- IO.openFile cFilePath IO.AppendMode
-              IO.hSetEncoding fh =<< IO.mkTextEncoding "UTF-8//TRANSLIT"
-              time <- getCurrentTime
-              let timestr = formatTime defaultTimeLocale "%F %T.%q" time
-              TextIO.hPutStrLn fh $
-                pack (show timestr ++ show severity) <> message
-              IO.hClose fh
-      }
+  case cFilePath of
+    Nothing -> fail "fila_path is not specified"
+    Just filePath ->
+      return
+        Handle
+          { log =
+              \severity message ->
+                when (severity >= cSeverity) $ do
+                  fh <- IO.openFile filePath IO.AppendMode
+                  IO.hSetEncoding fh =<< IO.mkTextEncoding "UTF-8//TRANSLIT"
+                  time <- getCurrentTime
+                  let timestr = formatTime defaultTimeLocale "%F %T.%q" time
+                  TextIO.hPutStrLn fh $
+                    pack (show timestr ++ show severity) <> message
+                  IO.hClose fh
+          }

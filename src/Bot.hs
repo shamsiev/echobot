@@ -1,6 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Bot where
 
 import Data.Text (Text)
+import Data.Yaml (FromJSON(parseJSON), (.:), withObject)
 
 --------------------------------------------------------------------------------
 type ChatId = Int
@@ -48,6 +51,23 @@ data QueryButton =
     , bUserdata :: QueryData
     }
   deriving (Show)
+
+--------------------------------------------------------------------------------
+data Config =
+  Config
+    { cInstance :: Text
+    , cHelpMessage :: Text
+    , cRepeatMessage :: Text
+    , cRepeatCount :: Int
+    }
+  deriving (Show)
+
+instance FromJSON Config where
+  parseJSON =
+    withObject "FromJSON Bot.Config" $ \o ->
+      Config <$> o .: "instance" <*> o .: "help_message" <*>
+      o .: "repeat_message" <*>
+      o .: "repeat_count"
 
 --------------------------------------------------------------------------------
 data Handle =
