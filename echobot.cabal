@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f3d0e2e746b144645b222071797ce1e2275ef46a775c54a80f8f17004e33c5b4
+-- hash: 6fb5b9e31074ce5063c78276943b129f9ec0655676e7f491f2d8d73792db43d2
 
 name:           echobot
 version:        0.1.0.0
@@ -59,7 +59,7 @@ executable echobot-exe
       Paths_echobot
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -81,7 +81,7 @@ test-suite echobot-test
       Paths_echobot
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:
       aeson
     , base >=4.7 && <5
