@@ -18,6 +18,9 @@ main =
     test4
     test5
     test6
+    test7
+    test8
+    test9
 
 --------------------------------------------------------------------------------
 test1 :: SpecWith ()
@@ -325,3 +328,145 @@ mediaToFold =
   , Bot.MediaVideo "video3_3" ""
   , Bot.MediaAudio "audio4_4" ""
   ]
+
+--------------------------------------------------------------------------------
+test7 :: SpecWith ()
+test7 =
+  describe "Bot.VK.Internal.fileToText" $ do
+    it "converts file with key to text" $ do
+      Bot.VK.Internal.fileToText "file" fileWithKey `shouldBe`
+        "file9999_8888_key"
+    it "converts file without key to text" $ do
+      Bot.VK.Internal.fileToText "file" fileWithoutKey `shouldBe`
+        "file9999_8888"
+
+fileWithKey :: Bot.VK.Internal.File
+fileWithKey = Bot.VK.Internal.File (Just "key") 8888 9999
+
+fileWithoutKey :: Bot.VK.Internal.File
+fileWithoutKey = Bot.VK.Internal.File Nothing 8888 9999
+
+--------------------------------------------------------------------------------
+test8 :: SpecWith ()
+test8 =
+  describe "Bot.VK.Internal.attachmentToMedia" $ do
+    it "photo to MediaPhoto" $ do
+      Bot.VK.Internal.attachmentToMedia
+        Bot.VK.Internal.Attachment
+          { Bot.VK.Internal.aPhoto = Just (Bot.VK.Internal.File Nothing 1 2)
+          , Bot.VK.Internal.aAudio = Nothing
+          , Bot.VK.Internal.aSticker = Nothing
+          , Bot.VK.Internal.aDocument = Nothing
+          , Bot.VK.Internal.aVideo = Nothing
+          } `shouldBe`
+        Just (Bot.MediaPhoto "photo2_1" "")
+    it "audio to MediaAudio" $ do
+      Bot.VK.Internal.attachmentToMedia
+        Bot.VK.Internal.Attachment
+          { Bot.VK.Internal.aAudio = Just (Bot.VK.Internal.File Nothing 1 2)
+          , Bot.VK.Internal.aPhoto = Nothing
+          , Bot.VK.Internal.aSticker = Nothing
+          , Bot.VK.Internal.aDocument = Nothing
+          , Bot.VK.Internal.aVideo = Nothing
+          } `shouldBe`
+        Just (Bot.MediaAudio "audio2_1" "")
+    it "document to MediaDocument" $ do
+      Bot.VK.Internal.attachmentToMedia
+        Bot.VK.Internal.Attachment
+          { Bot.VK.Internal.aDocument = Just (Bot.VK.Internal.File Nothing 1 2)
+          , Bot.VK.Internal.aPhoto = Nothing
+          , Bot.VK.Internal.aSticker = Nothing
+          , Bot.VK.Internal.aAudio = Nothing
+          , Bot.VK.Internal.aVideo = Nothing
+          } `shouldBe`
+        Just (Bot.MediaDocument "doc2_1" "")
+    it "video to MediaVideo" $ do
+      Bot.VK.Internal.attachmentToMedia
+        Bot.VK.Internal.Attachment
+          { Bot.VK.Internal.aVideo = Just (Bot.VK.Internal.File Nothing 1 2)
+          , Bot.VK.Internal.aPhoto = Nothing
+          , Bot.VK.Internal.aSticker = Nothing
+          , Bot.VK.Internal.aAudio = Nothing
+          , Bot.VK.Internal.aDocument = Nothing
+          } `shouldBe`
+        Just (Bot.MediaVideo "video2_1" "")
+    it "sticker to MediaSticker" $ do
+      Bot.VK.Internal.attachmentToMedia
+        Bot.VK.Internal.Attachment
+          { Bot.VK.Internal.aVideo = Nothing
+          , Bot.VK.Internal.aPhoto = Nothing
+          , Bot.VK.Internal.aSticker = Just (Bot.VK.Internal.Sticker 6778)
+          , Bot.VK.Internal.aAudio = Nothing
+          , Bot.VK.Internal.aDocument = Nothing
+          } `shouldBe`
+        Just (Bot.MediaSticker "6778")
+    it "empty to Nothing" $ do
+      Bot.VK.Internal.attachmentToMedia
+        Bot.VK.Internal.Attachment
+          { Bot.VK.Internal.aVideo = Nothing
+          , Bot.VK.Internal.aPhoto = Nothing
+          , Bot.VK.Internal.aSticker = Nothing
+          , Bot.VK.Internal.aAudio = Nothing
+          , Bot.VK.Internal.aDocument = Nothing
+          } `shouldBe`
+        Nothing
+
+--------------------------------------------------------------------------------
+test9 :: SpecWith ()
+test9 =
+  describe "Bot.VK.Internal.updateToEvent" $ do
+    it "returns EventMessage" $ do
+      Bot.VK.Internal.updateToEvent
+        Bot.VK.Internal.Update
+          { Bot.VK.Internal.uObject =
+              Bot.VK.Internal.UObject
+                (Just
+                   Bot.VK.Internal.Message
+                     { Bot.VK.Internal.mFromId = 12345
+                     , Bot.VK.Internal.mText = "message"
+                     , Bot.VK.Internal.mAttachments = []
+                     , Bot.VK.Internal.mPayload = Nothing
+                     })
+          } `shouldBe`
+        Just (Bot.EventMessage 12345 "message")
+    it "returns EventMedia" $ do
+      Bot.VK.Internal.updateToEvent
+        Bot.VK.Internal.Update
+          { Bot.VK.Internal.uObject =
+              Bot.VK.Internal.UObject
+                (Just
+                   Bot.VK.Internal.Message
+                     { Bot.VK.Internal.mFromId = 12345
+                     , Bot.VK.Internal.mText = "message"
+                     , Bot.VK.Internal.mAttachments =
+                         [ Bot.VK.Internal.Attachment
+                             Nothing
+                             Nothing
+                             (Just $ Bot.VK.Internal.Sticker 54321)
+                             Nothing
+                             Nothing
+                         ]
+                     , Bot.VK.Internal.mPayload = Nothing
+                     })
+          } `shouldBe`
+        Just (Bot.EventMedia 12345 "message" [Bot.MediaSticker "54321"])
+    it "returns EventMessage" $ do
+      Bot.VK.Internal.updateToEvent
+        Bot.VK.Internal.Update
+          { Bot.VK.Internal.uObject =
+              Bot.VK.Internal.UObject
+                (Just
+                   Bot.VK.Internal.Message
+                     { Bot.VK.Internal.mFromId = 12345
+                     , Bot.VK.Internal.mText = "actual_payload"
+                     , Bot.VK.Internal.mAttachments = []
+                     , Bot.VK.Internal.mPayload =
+                         Just "fake payload to parse json"
+                     })
+          } `shouldBe`
+        Just (Bot.EventQuery 12345 "" "actual_payload")
+    it "returns Nothing" $ do
+      Bot.VK.Internal.updateToEvent
+        Bot.VK.Internal.Update
+          {Bot.VK.Internal.uObject = Bot.VK.Internal.UObject Nothing} `shouldBe`
+        Nothing

@@ -34,5 +34,5 @@ vk:
 - [x] Logger
 - [x] Telegram
 - [x] VK
-- [ ] tests
+- [x] tests
 - [ ] Docs
