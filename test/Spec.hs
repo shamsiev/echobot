@@ -1,15 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Bot
-  ( Event(EventMedia, EventMessage, EventQuery)
-  , Media(MediaAnimation, MediaAudio, MediaDocument, MediaPhoto,
-      MediaSticker, MediaVideo, MediaVoice)
-  )
 import qualified Bot.Telegram
 import qualified Bot.Telegram.Internal
+import qualified Bot.VK
+import qualified Bot.VK.Internal
 import Data.Aeson (KeyValue((.=)), object)
 import Data.Text (Text)
-import Test.Hspec (SpecWith, describe, hspec, it, shouldBe)
+import Test.Hspec (Spec, SpecWith, describe, hspec, it, shouldBe)
 
 main :: IO ()
 main =
@@ -19,6 +17,7 @@ main =
     test3
     test4
     test5
+    test6
 
 --------------------------------------------------------------------------------
 test1 :: SpecWith ()
@@ -310,3 +309,19 @@ test5 =
           , "voice" .= ("voice" :: Text)
           , "caption" .= ("caption" :: Text)
           ]
+
+--------------------------------------------------------------------------------
+test6 :: SpecWith ()
+test6 =
+  describe "Bot.VK.foldMedia" $ do
+    it "folds Media" $ do
+      Bot.VK.foldMedia mediaToFold `shouldBe`
+        "doc1_1,photo2_2,video3_3,audio4_4"
+
+mediaToFold :: [Media]
+mediaToFold =
+  [ Bot.MediaDocument "doc1_1" ""
+  , Bot.MediaPhoto "photo2_2" ""
+  , Bot.MediaVideo "video3_3" ""
+  , Bot.MediaAudio "audio4_4" ""
+  ]

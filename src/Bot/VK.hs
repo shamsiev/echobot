@@ -4,7 +4,19 @@
 module Bot.VK where
 
 import Bot
+  ( ChatId
+  , Config(cHelpMessage, cRepeatCount, cRepeatMessage)
+  , Event(..)
+  , Handle(..)
+  , Media(MediaAudio, MediaDocument, MediaPhoto, MediaSticker,
+      MediaVideo)
+  )
 import Bot.VK.Internal
+  ( LPSResponse(lpsResponse)
+  , LongPollServer(lpsKey, lpsServer, lpsTS)
+  , Updates(uUpdates)
+  , updateToEvent
+  )
 import Control.Lens ((&), (.~))
 import Control.Monad (replicateM_, void, when)
 import Data.Aeson
@@ -23,7 +35,7 @@ import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text, pack, unpack)
 import Data.Yaml (FromJSON(parseJSON), (.:), withObject)
 import qualified Logger
-import Network.Wreq
+import Network.Wreq (defaults, param)
 import qualified Web
 
 --------------------------------------------------------------------------------
@@ -303,12 +315,16 @@ processMedia _ _ = fail "VK: Used processMedia in a wrong place"
 foldMedia :: [Media] -> Text
 foldMedia [] = ""
 foldMedia (m:ms) =
-  case m of
-    MediaDocument f _ -> f <> "," <> foldMedia ms
-    MediaPhoto f _ -> f <> "," <> foldMedia ms
-    MediaVideo f _ -> f <> "," <> foldMedia ms
-    MediaAudio f _ -> f <> "," <> foldMedia ms
-    _ -> foldMedia ms
+  let coma =
+        if null ms
+          then ""
+          else ","
+   in case m of
+        MediaDocument f _ -> f <> coma <> foldMedia ms
+        MediaPhoto f _ -> f <> coma <> foldMedia ms
+        MediaVideo f _ -> f <> coma <> foldMedia ms
+        MediaAudio f _ -> f <> coma <> foldMedia ms
+        _ -> foldMedia ms
 
 --------------------------------------------------------------------------------
 processQuery :: IHandle -> Event -> IO ()
