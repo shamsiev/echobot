@@ -7,7 +7,7 @@ import qualified Bot.VK
 import qualified Bot.VK.Internal
 import Data.Aeson (KeyValue((.=)), object)
 import Data.Text (Text)
-import Test.Hspec (Spec, SpecWith, describe, hspec, it, shouldBe)
+import Test.Hspec (SpecWith, describe, hspec, it, shouldBe)
 
 main :: IO ()
 main =
