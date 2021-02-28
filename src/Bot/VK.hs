@@ -7,7 +7,16 @@ import Bot
 import Bot.VK.Internal
 import Control.Lens ((&), (.~))
 import Control.Monad (replicateM_)
-import Data.Aeson (eitherDecode)
+import Data.Aeson
+  ( ToJSON(..)
+  , Value
+  , (.=)
+  , eitherDecode
+  , encode
+  , object
+  , toJSON
+  )
+import Data.ByteString.Lazy.Internal (unpackChars)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import qualified Data.Map.Strict as M
 import Data.Maybe (fromMaybe, mapMaybe)
@@ -129,6 +138,7 @@ vkProcessEvents handle (e:events) = do
     EventQuery {..} -> print "media event"
   vkProcessEvents handle events
 
+--------------------------------------------------------------------------------
 processMessage :: IHandle -> Event -> IO ()
 processMessage IHandle {..} EventMessage {..} = do
   Logger.info iLogger $ "VK: Processing message for: " <> pack (show eChatId)
@@ -150,7 +160,21 @@ processMessage IHandle {..} EventMessage {..} = do
         _ ->
           Logger.error iLogger $
           "VK: Sending /help message failed: " <> pack (show code)
-    "/repeat" -> undefined
+    "/repeat" -> do
+      let options =
+            defaults & param "user_id" .~ [pack $ show eChatId] &
+            param "message" .~ [iRepeatMessage] &
+            param "keyboard" .~ [pack $ unpackChars $ encode keyboard] &
+            param "random_id" .~ ["0"] &
+            param "access_token" .~ [iAccessKey] &
+            param "v" .~ [iApiVersion]
+      (code, body) <- Web.sendOptions address options
+      print body
+      case code of
+        200 -> Logger.info iLogger "VK: Sent /repeat message"
+        _ ->
+          Logger.error iLogger $
+          "VK: Sending /repeat message failed: " <> pack (show code)
     _ -> do
       let options =
             defaults & param "user_id" .~ [pack $ show eChatId] &
@@ -160,8 +184,71 @@ processMessage IHandle {..} EventMessage {..} = do
             param "v" .~ [iApiVersion]
       (code, _) <- Web.sendOptions address options
       case code of
-        200 -> Logger.info iLogger "VK: Sent /help message"
+        200 -> Logger.info iLogger "VK: Sent message"
         _ ->
           Logger.error iLogger $
-          "VK: Sending /help message failed: " <> pack (show code)
+          "VK: Sending message failed: " <> pack (show code)
 processMessage _ _ = fail "VK: Used processMessage in a wrong place"
+
+keyboard :: Keyboard
+keyboard = Keyboard [buttons]
+
+newtype Keyboard =
+  Keyboard
+    { kButtons :: [[Button]]
+    }
+  deriving (Show)
+
+instance ToJSON Keyboard where
+  toJSON Keyboard {..} = object ["buttons" .= kButtons]
+
+buttons :: [Button]
+buttons =
+  [ Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "1", baPayload = "1"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "2", baPayload = "2"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "3", baPayload = "3"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "4", baPayload = "4"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "5", baPayload = "5"}
+      , bColor = "primary"
+      }
+  ]
+
+data Button =
+  Button
+    { bAction :: ButtonAction
+    , bColor :: Text
+    }
+  deriving (Show)
+
+instance ToJSON Button where
+  toJSON Button {..} = object ["action" .= bAction, "color" .= bColor]
+
+data ButtonAction =
+  ButtonAction
+    { baType :: Text
+    , baLabel :: Text
+    , baPayload :: Text
+    }
+  deriving (Show)
+
+instance ToJSON ButtonAction where
+  toJSON ButtonAction {..} =
+    object ["type" .= baType, "label" .= baLabel, "payload" .= baPayload]

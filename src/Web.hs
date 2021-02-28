@@ -8,6 +8,7 @@ import Network.Wreq
   , defaults
   , getWith
   , post
+  , postWith
   , responseBody
   , responseStatus
   , statusCode
