@@ -22,17 +22,21 @@ bot:
 
 telegram:
   token: your_token_here
-  timeout: 0
+  timeout: 25
 
 vk:
   access_key: your_access_key_here
   group_id: your_group_id_here
   api_version: your_api_version_here
+  timeout: 25
 ```
+## Project's structure
+Echobot is built using a [Handle Pattern](#https://www.schoolofhaskell.com/user/meiersi/the-service-pattern)
+Your handles are stored in `src/Logger.hs` and `src/Bot.hs`. Implementations for these handles are stored in `src/Logger` and `src/Bot`, accordingly. `src/Telegram.hs` is where you build your Telegram implementation for Bot and `src/VK.hs` is where you build your VK implementation for Bot. Every `Internal.hs` just stores some data types and functions which you want to hide from implementation. `src/Web.hs` consists of two functions built on top of [wreq](#https://hackage.haskell.org/package/wreq). And finally, `app/Main.hs` is an entry point of a program.
 
 ## TODOS
 - [x] Logger
 - [x] Telegram
 - [x] VK
 - [x] tests
-- [ ] Docs
+- [x] Docs
