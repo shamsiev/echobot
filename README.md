@@ -40,4 +40,3 @@ Your handles are stored in `src/Logger.hs` and `src/Bot.hs`. Implementations for
 - [x] VK
 - [x] tests
 - [x] Docs
-- [ ] Refactor so it is good enough to hire me
