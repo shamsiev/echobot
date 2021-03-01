@@ -1,4 +1,4 @@
-# ECHOBOT
+![ECHOBOT](/img/echobot.png "ECHOBOT")
 
 ## Usage
 - Clone this repository: `git clone https://github.com/shamsiev/echobot`
