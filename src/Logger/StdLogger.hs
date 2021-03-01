@@ -15,12 +15,10 @@ import Logger (Config(..), Handle(..), Severity)
 --------------------------------------------------------------------------------
 new :: Config -> IO Handle
 new Config {..} =
-  return
-    Handle
-      { log =
-          \severity message ->
-            when (severity >= cSeverity) $ do
-              time <- getCurrentTime
-              let timestr = formatTime defaultTimeLocale "%F %T.%q" time
-              TextIO.putStrLn $ pack (show timestr ++ show severity) <> message
-      }
+  return $
+  Handle
+    (\severity message ->
+       when (severity >= cSeverity) $ do
+         time <- getCurrentTime
+         let timestr = formatTime defaultTimeLocale "%F %T.%q" time
+         TextIO.putStrLn $ pack (timestr ++ show severity) <> message)

@@ -7,7 +7,7 @@ import qualified Bot.Telegram as Telegram
 import qualified Bot.VK as VK
 import Control.Monad (forever, when)
 import Data.Maybe (fromJust, isNothing)
-import Data.Text (Text, unpack)
+import Data.Text (unpack)
 import Data.Yaml
   ( FromJSON(parseJSON)
   , ParseException
