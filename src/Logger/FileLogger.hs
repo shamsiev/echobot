@@ -27,5 +27,6 @@ new Config {..} =
              IO.hSetEncoding fh =<< IO.mkTextEncoding "UTF-8//TRANSLIT"
              time <- getCurrentTime
              let timestr = formatTime defaultTimeLocale "%F %T.%q" time
-             TextIO.hPutStrLn fh $ pack (timestr ++ show severity) <> message
+             TextIO.hPutStrLn fh $
+               pack ("[" ++ timestr ++ show severity ++ "]") <> message
              IO.hClose fh)

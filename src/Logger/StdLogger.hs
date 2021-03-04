@@ -21,4 +21,5 @@ new Config {..} =
        when (severity >= cSeverity) $ do
          time <- getCurrentTime
          let timestr = formatTime defaultTimeLocale "%F %T.%q" time
-         TextIO.putStrLn $ pack (timestr ++ show severity) <> message)
+         TextIO.putStrLn $
+           pack ("[" ++ timestr ++ show severity ++ "]") <> message)

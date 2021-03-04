@@ -44,10 +44,10 @@ data Severity
   deriving (Ord, Eq)
 
 instance Show Severity where
-  show Debug = " [ DEBUG ] "
-  show Info = " [ INFO  ] "
-  show Warning = " [ WARN  ] "
-  show Error = " [ ERROR ] "
+  show Debug = " DEBUG"
+  show Info = "  INFO"
+  show Warning = "  WARN"
+  show Error = " ERROR"
 
 instance FromJSON Severity where
   parseJSON =
