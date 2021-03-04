@@ -10,7 +10,7 @@ import Data.Text (pack)
 import qualified Data.Text.IO as TextIO
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, formatTime)
-import Logger (Config(..), Handle(..), Severity)
+import Logger (Config(..), Handle(Handle))
 
 --------------------------------------------------------------------------------
 new :: Config -> IO Handle
