@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9cddb865f552711fed67f2454114e0770f10d798fb453d4c5c2e2839f2457cbf
+-- hash: 6e80ab74cc9554cc131814629b8d4ac5007388b2f499bcad4d8a08578a3d0a2d
 
 name:           echobot
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Logger
+      Logger.FileLogger
       Logger.StdLogger
   other-modules:
       Paths_echobot
