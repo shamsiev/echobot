@@ -2,4 +2,6 @@
 *~
 .vscode
 .history
+.idea
+echobot.iml
 config.yaml
