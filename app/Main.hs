@@ -1,4 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
+import Logger (Level(Debug), debug)
+import Logger.StdLogger (new)
+
 main :: IO ()
-main = undefined
+main = new Debug >>= (`debug` "Testing logger")

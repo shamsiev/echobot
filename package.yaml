@@ -25,11 +25,9 @@ dependencies:
 - hspec
 - bytestring
 - text
-- lens
 - time
 - aeson
 - yaml
-- wreq
 
 library:
   source-dirs: src
