@@ -1,20 +1,9 @@
-module Logger
-  ( Handle(..)
-  , Level(..)
-  , debug
-  , info
-  , warning
-  , error
-  ) where
+module Logger where
 
 import Data.Text (Text)
-import qualified Data.Text.IO as TextIO
 import Prelude hiding (error, log)
 
-newtype Handle =
-  Handle
-    { log :: Level -> Text -> IO ()
-    }
+type Message = Text
 
 data Level
   = Debug
@@ -25,18 +14,23 @@ data Level
 
 instance Show Level where
   show Debug = "DEBUG"
-  show Info = "INFO "
-  show Warning = "WARN "
+  show Info = " INFO"
+  show Warning = " WARN"
   show Error = "ERROR"
 
-debug :: Handle -> Text -> IO ()
-debug = (`log` Debug)
+class Monad m =>
+      Logger m
+  where
+  log :: Level -> Message -> m ()
 
-info :: Handle -> Text -> IO ()
-info = (`log` Info)
+debug :: Logger m => Message -> m ()
+debug = log Debug
 
-warning :: Handle -> Text -> IO ()
-warning = (`log` Warning)
+info :: Logger m => Message -> m ()
+info = log Info
 
-error :: Handle -> Text -> IO ()
-error = (`log` Error)
+warning :: Logger m => Message -> m ()
+warning = log Warning
+
+error :: Logger m => Message -> m ()
+error = log Error
