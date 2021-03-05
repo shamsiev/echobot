@@ -29,6 +29,7 @@ dependencies:
 - aeson
 - yaml
 - mtl
+- http-conduit
 
 library:
   source-dirs: src

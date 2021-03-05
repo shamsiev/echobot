@@ -1,0 +1,42 @@
+module Messenger.Telegram where
+-- import Data.IORef
+-- import qualified Data.Map.Strict as M
+-- import Data.Text (Text)
+-- import qualified Logger
+-- import Messenger
+-- type HelpMessage = Text
+-- type RepeatMessage = Text
+-- type RepeatCount = Int
+-- type Timeout = Text
+-- type Token = Text
+-- data Config =
+--   Config
+--     { cHelpMessage :: HelpMessage
+--     , cRepeatMessage :: RepeatMessage
+--     , cRepeatCount :: RepeatCount
+--     , cTimeout :: Timeout
+--     , cToken :: Token
+--     }
+-- type Offset = Int
+-- type Counters = M.Map ChatId RepeatCount
+-- new :: Config -> Logger.Handle () -> IORef Offset -> IORef Counters -> IO Handle
+-- new config logger offset counters = do
+--   offset <- newIORef 0
+--   counters <- newIORef M.empty
+--   let telegram = Telegram config logger offset counters
+--   return
+--     Handle
+--       {getEvents = tgGetEvents telegram, handleEvent = tgHandleEvent telegram}
+-- data Telegram =
+--   Telegram
+--     { iConfig :: Config
+--     , iLogger :: Logger.Handle ()
+--     , iOffset :: IORef Offset
+--     , iCounters :: IORef Counters
+--     }
+-- tgGetEvents :: Telegram -> IO [Event]
+-- -- tgGetEvents telegram = askUpdates >>= map updateToEvent >>= return
+-- tgGetEvents telegram = undefined
+-- tgHandleEvent :: Telegram -> Event -> IO HandleEvent
+-- -- tgHandleEvent telegram = case event of -> sendMessage / sendMedia / answerQuery / answerHelpCommand / answerRepeatCommand
+-- tgHandleEvent telegram = undefined

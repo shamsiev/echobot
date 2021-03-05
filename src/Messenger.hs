@@ -2,68 +2,66 @@ module Messenger where
 
 import Data.Text (Text)
 
-type ChatId = Int
+data Handle =
+  Handle
+    { getEvents :: IO [Event]
+    , sendMessage :: ChatId -> Text -> IO Result
+    , sendMedia :: ChatId -> Media -> IO Result
+    , answerQuery :: QueryId -> QueryAnswer -> IO Result
+    , answerHelpCommand :: ChatId -> HelpMessage -> IO Result
+    , answerRepeatCommand :: ChatId -> RepeatMessage -> IO Result
+    }
 
-type Caption = Text
-
-type FileId = Text
-
-type QueryId = Text
-
-type QueryData = Text
-
-data MediaType
-  = StickerMedia
-  | VoiceMedia
-  | AnimationMedia
-  | DocumentMedia
-  | PhotoMedia
-  | VideoMedia
-  | AudioMedia
+data Event
+  = EventMessage ChatId Text
+  | EventMedia ChatId Media
+  | EventQuery ChatId QueryId QueryData
+  | EventHelpCommand ChatId
+  | EventRepeatCommand ChatId
   deriving (Eq, Show)
 
-data TelegramEvent
-  = TelegramMessage ChatId Text
-  | TelegramMediaCaption MediaType ChatId Caption FileId
-  | TelegramMedia MediaType ChatId FileId
-  | TelegramQuery ChatId QueryId QueryData
+data Media
+  = TelegramMedia (Maybe Caption) MediaType FileId
+  | VKMedia (Maybe Text) [VKMediaFile]
+  deriving (Eq, Show)
+
+data MediaType
+  = MediaSticker
+  | MediaVoice
+  | MediaAnimation
+  | MediaPhoto
+  | MediaVideo
+  | MediaAudio
+  | MediaDocument
+  deriving (Eq, Show)
+
+data VKMediaFile =
+  VKMediaFile MediaType OwnerId MediaId
   deriving (Eq, Show)
 
 type OwnerId = Int
 
 type MediaId = Int
 
-data VKMediaFile =
-  VKMediaFile MediaType OwnerId MediaId
+type ChatId = Int
+
+type FileId = Text
+
+type Caption = Text
+
+type QueryId = Text
+
+type QueryData = Text
+
+type QueryAnswer = Text
+
+type HelpMessage = Text
+
+type RepeatMessage = Text
+
+data Result
+  = Fail FailReason
+  | Success
   deriving (Eq, Show)
 
-data VKEvent
-  = VKMessage ChatId Text
-  | VKMedia ChatId [VKMediaFile]
-  | VKMessageWithMedia ChatId Text [VKMediaFile]
-  | VKQuery ChatId QueryId QueryId
-  | HelpCommand ChatId
-  | RepeatCommnad ChatId
-  deriving (Eq, Show)
-
-data Event
-  = TelegramEvent TelegramEvent
-  | VKEvent VKEvent
-  deriving (Eq, Show)
-
-data HandledEvent
-  = HTelegramMessage
-  | HTelegramMedia
-  | HTelegramQuery
-  | HVKMessage
-  | HVKMedia
-  | HVKMessageWithMedia
-  | HHelpCommand
-  | HRepeatCommand
-  deriving (Eq, Show)
-
-data Handle =
-  Handle
-    { getEvent :: IO [Event]
-    , handleEvent :: Event -> IO HandledEvent
-    }
+type FailReason = Text

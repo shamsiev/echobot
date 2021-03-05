@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 27c2438b870aa06b73029d53228e29392594045d2d3cdfdbccc8a7b181f8afdf
+-- hash: 264e8fca6f845547157df6ebcaeb21107d789069b3b3f9c7636c8e53670ccb97
 
 name:           echobot
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       Logger.File
       Logger.Test
       Messenger
+      Messenger.Telegram
   other-modules:
       Paths_echobot
   hs-source-dirs:
@@ -42,6 +43,7 @@ library
     , bytestring
     , containers
     , hspec
+    , http-conduit
     , mtl
     , text
     , time
@@ -62,6 +64,7 @@ executable echobot-exe
     , containers
     , echobot
     , hspec
+    , http-conduit
     , mtl
     , text
     , time
@@ -83,6 +86,7 @@ test-suite echobot-test
     , containers
     , echobot
     , hspec
+    , http-conduit
     , mtl
     , text
     , time
