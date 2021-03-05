@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Logger.FileLogger where
+module Logger.File where
 
 import Control.Monad (when)
 import Control.Monad.Reader

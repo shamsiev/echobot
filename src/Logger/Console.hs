@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Logger.StdLogger where
+module Logger.Console where
 
 import Control.Monad (when)
 import Control.Monad.Reader (MonadIO(..), MonadReader(ask), ReaderT(..), when)
