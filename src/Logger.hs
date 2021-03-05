@@ -1,4 +1,14 @@
-module Logger where
+module Logger
+  ( Handle(..)
+  , Logger(..)
+  , Level(..)
+  , Time
+  , Message
+  , debug
+  , info
+  , warning
+  , error
+  ) where
 
 import Data.Text (Text)
 import Prelude hiding (error, log)

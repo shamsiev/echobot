@@ -1,6 +1,8 @@
-module Logger.Test where
+module Logger.Test
+  ( new
+  ) where
 
-import Logger (Handle(..), Level, Logger(Logger, NoLogger))
+import Logger (Handle(..), Level, Logger(..))
 import Prelude hiding (log)
 
 new :: Level -> IO (Handle Logger)
