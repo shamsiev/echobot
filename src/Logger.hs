@@ -2,6 +2,9 @@ module Logger where
 
 import Data.Text (Text)
 import Prelude hiding (error, log)
+import Text.Printf (printf)
+
+type Time = String
 
 type Message = Text
 
@@ -18,19 +21,29 @@ instance Show Level where
   show Warning = " WARN"
   show Error = "ERROR"
 
-class Monad m =>
-      Logger m
-  where
-  log :: Level -> Message -> m ()
+data Logger
+  = NoLogger
+  | Logger Time Level Message
+  deriving (Eq)
 
-debug :: Logger m => Message -> m ()
-debug = log Debug
+instance Show Logger where
+  show NoLogger = "NoLogger"
+  show (Logger time level message) =
+    printf "[%s %s] %s" time (show level) message
 
-info :: Logger m => Message -> m ()
-info = log Info
+newtype Handle r =
+  Handle
+    { log :: Level -> Message -> IO r
+    }
 
-warning :: Logger m => Message -> m ()
-warning = log Warning
+debug :: Handle r -> Message -> IO r
+debug = (`log` Debug)
 
-error :: Logger m => Message -> m ()
-error = log Error
+info :: Handle r -> Message -> IO r
+info = (`log` Info)
+
+warning :: Handle r -> Message -> IO r
+warning = (`log` Warning)
+
+error :: Handle r -> Message -> IO r
+error = (`log` Error)
