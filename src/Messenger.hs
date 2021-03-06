@@ -5,11 +5,11 @@ import Data.Text (Text)
 data Handle =
   Handle
     { getEvents :: IO [Event]
-    , sendMessage :: ChatId -> Text -> IO Result
-    , sendMedia :: ChatId -> Media -> IO Result
-    , answerQuery :: QueryId -> QueryAnswer -> IO Result
-    , answerHelpCommand :: ChatId -> HelpMessage -> IO Result
-    , answerRepeatCommand :: ChatId -> RepeatMessage -> IO Result
+    , sendMessage :: ChatId -> Text -> IO ()
+    , sendMedia :: ChatId -> Media -> IO ()
+    , answerQuery :: QueryId -> QueryAnswer -> IO ()
+    , answerHelpCommand :: ChatId -> IO ()
+    , answerRepeatCommand :: ChatId -> IO ()
     }
 
 data Event
@@ -18,6 +18,7 @@ data Event
   | EventQuery ChatId QueryId QueryData
   | EventHelpCommand ChatId
   | EventRepeatCommand ChatId
+  | UnknownEvent
   deriving (Eq, Show)
 
 data Media
@@ -54,14 +55,5 @@ type QueryId = Text
 type QueryData = Text
 
 type QueryAnswer = Text
-
-type HelpMessage = Text
-
-type RepeatMessage = Text
-
-data Result
-  = Fail FailReason
-  | Success
-  deriving (Eq, Show)
 
 type FailReason = Text
