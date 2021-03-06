@@ -506,4 +506,50 @@ iAnswerHelpCommand IHandle {..} chatId = do
 
 --------------------------------------------------------------------------------
 iAnswerRepeatCommand :: IHandle -> ChatId -> IO ()
-iAnswerRepeatCommand = undefined
+iAnswerRepeatCommand IHandle {..} chatId = do
+  Logger.info iLogger "Answering to /repeat command..."
+  let request =
+        makeRepeatCommandRequest
+          (cToken iConfig)
+          chatId
+          (cRepeatMessage iConfig)
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> Logger.info iLogger "Successfully answered to /repeat command"
+    code ->
+      Logger.warning iLogger $
+      "Answered to /repeat command with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeRepeatCommandRequest :: Token -> ChatId -> RepeatMessage -> Request
+makeRepeatCommandRequest token chatId repeatMessage =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendMessage"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          [ "chat_id" A..= chatId
+          , "text" A..= repeatMessage
+          , "reply_markup" A..= A.object ["inline_keyboard" A..= keyboard]
+          ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+keyboard :: A.Value
+keyboard =
+  A.toJSON
+    [ [Button "1" "1"]
+    , [Button "2" "2"]
+    , [Button "3" "3"]
+    , [Button "4" "4"]
+    , [Button "5" "5"]
+    ]
+
+data Button =
+  Button
+    { bText :: Text
+    , bData :: Text
+    }
+  deriving (Show)
+
+instance A.ToJSON Button where
+  toJSON Button {..} = A.object ["text" A..= bText, "callback_data" A..= bData]
