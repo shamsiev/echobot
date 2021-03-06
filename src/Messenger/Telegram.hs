@@ -78,10 +78,12 @@ iGetEvents IHandle {..} = do
       updates <-
         either
           fail
-          return
+          (return . uResult)
           (A.eitherDecode (getResponseBody response) :: Either String Updates)
       Logger.debug iLogger $ "Parsed updates: " <> pack (show updates)
-      let events = map updateToEvent (uResult updates)
+      let events = map updateToEvent updates
+      let newOffset = maximum $ offset : map ((+ 1) . uUpdateId) updates
+      writeIORef iOffset newOffset
       Logger.debug iLogger $ "Current events: " <> pack (show events)
       return events
     code -> do
