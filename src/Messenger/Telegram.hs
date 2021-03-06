@@ -33,6 +33,7 @@ new config logger = do
       , answerRepeatCommand = iAnswerRepeatCommand iHandle
       }
 
+--------------------------------------------------------------------------------
 data IHandle =
   IHandle
     { iConfig :: Config
@@ -41,6 +42,7 @@ data IHandle =
     , iCounters :: IORef Counters
     }
 
+--------------------------------------------------------------------------------
 data Config =
   Config
     { cHelpMessage :: HelpMessage
@@ -50,6 +52,7 @@ data Config =
     , cToken :: Token
     }
 
+--------------------------------------------------------------------------------
 type HelpMessage = Text
 
 type RepeatMessage = Text
@@ -234,6 +237,7 @@ instance A.FromJSON Updates where
     A.withObject "Messenger.Telegram.Updates" $ \o ->
       Updates <$> o A..: "result"
 
+--------------------------------------------------------------------------------
 data Update =
   Update
     { uUpdateId :: Int
@@ -248,6 +252,7 @@ instance A.FromJSON Update where
       Update <$> o A..: "update_id" <*> o A..: "message" <*>
       o A..: "callback_query"
 
+--------------------------------------------------------------------------------
 data Message =
   Message
     { mChat :: Chat
@@ -275,6 +280,7 @@ instance A.FromJSON Message where
       o A..:? "audio" <*>
       o A..:? "voice"
 
+--------------------------------------------------------------------------------
 data CallbackQuery =
   CallbackQuery
     { cqId :: QueryId
@@ -288,6 +294,7 @@ instance A.FromJSON CallbackQuery where
     A.withObject "Messenger.Telegram.CallbackQuery" $ \o ->
       CallbackQuery <$> o A..: "id" <*> o A..: "from" <*> o A..: "data"
 
+--------------------------------------------------------------------------------
 newtype Chat =
   Chat
     { cId :: ChatId
@@ -298,6 +305,7 @@ instance A.FromJSON Chat where
   parseJSON =
     A.withObject "Meesenger.Telegram.Chat" $ \o -> Chat <$> o A..: "id"
 
+--------------------------------------------------------------------------------
 newtype File =
   File
     { fId :: FileId
@@ -325,6 +333,7 @@ iSendMessage IHandle {..} chatId text = do
       code ->
         Logger.warning iLogger $ "Sent message with code: " <> pack (show code)
 
+--------------------------------------------------------------------------------
 makeSendMessageRequest :: Token -> ChatId -> Text -> Request
 makeSendMessageRequest token chatId text =
   let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendMessage"
@@ -335,7 +344,120 @@ makeSendMessageRequest token chatId text =
 
 --------------------------------------------------------------------------------
 iSendMedia :: IHandle -> ChatId -> Media -> IO ()
-iSendMedia = undefined
+iSendMedia IHandle {..} chatId media = do
+  Logger.info iLogger "Sending media..."
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "Current counters: " <> pack (show counters)
+  let repeatCount = M.findWithDefault (cRepeatCount iConfig) chatId counters
+  Logger.debug iLogger $
+    "Counter chosen to send media: " <> pack (show repeatCount)
+  request <- either fail return $ makeMediaRequest (cToken iConfig) chatId media
+  replicateM_ repeatCount $ do
+    response <- httpLBS request
+    case getResponseStatusCode response of
+      200 -> Logger.info iLogger "Successfully sent media"
+      code ->
+        Logger.warning iLogger $ "Sent media with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeMediaRequest :: Token -> ChatId -> Media -> Either String Request
+makeMediaRequest token chatId (TelegramMedia _ MediaSticker fileId) =
+  Right $ makeSendStickerRequest token chatId fileId
+makeMediaRequest token chatId (TelegramMedia caption MediaVoice fileId) =
+  Right $ makeSendVoiceRequest token chatId caption fileId
+makeMediaRequest token chatId (TelegramMedia caption MediaAnimation fileId) =
+  Right $ makeSendAnimationRequest token chatId caption fileId
+makeMediaRequest token chatId (TelegramMedia caption MediaPhoto fileId) =
+  Right $ makeSendPhotoRequest token chatId caption fileId
+makeMediaRequest token chatId (TelegramMedia caption MediaVideo fileId) =
+  Right $ makeSendVideoRequest token chatId caption fileId
+makeMediaRequest token chatId (TelegramMedia caption MediaAudio fileId) =
+  Right $ makeSendAudioRequest token chatId caption fileId
+makeMediaRequest token chatId (TelegramMedia caption MediaDocument fileId) =
+  Right $ makeSendDocumentRequest token chatId caption fileId
+makeMediaRequest _ _ _ = Left "Invalid media"
+
+--------------------------------------------------------------------------------
+makeSendStickerRequest :: Token -> ChatId -> FileId -> Request
+makeSendStickerRequest token chatId fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendSticker"
+      host = "api.telegram.org"
+      requestBody = A.object ["chat_id" A..= chatId, "sticker" A..= fileId]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+--------------------------------------------------------------------------------
+makeSendVoiceRequest :: Token -> ChatId -> Maybe Caption -> FileId -> Request
+makeSendVoiceRequest token chatId caption fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendVoice"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          ["chat_id" A..= chatId, "voice" A..= fileId, "caption" A..= caption]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+--------------------------------------------------------------------------------
+makeSendAnimationRequest ::
+     Token -> ChatId -> Maybe Caption -> FileId -> Request
+makeSendAnimationRequest token chatId caption fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendAnimation"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          [ "chat_id" A..= chatId
+          , "animation" A..= fileId
+          , "caption" A..= caption
+          ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+--------------------------------------------------------------------------------
+makeSendPhotoRequest :: Token -> ChatId -> Maybe Caption -> FileId -> Request
+makeSendPhotoRequest token chatId caption fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendPhoto"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          ["chat_id" A..= chatId, "photo" A..= fileId, "caption" A..= caption]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+--------------------------------------------------------------------------------
+makeSendVideoRequest :: Token -> ChatId -> Maybe Caption -> FileId -> Request
+makeSendVideoRequest token chatId caption fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendVideo"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          ["chat_id" A..= chatId, "video" A..= fileId, "caption" A..= caption]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+--------------------------------------------------------------------------------
+makeSendAudioRequest :: Token -> ChatId -> Maybe Caption -> FileId -> Request
+makeSendAudioRequest token chatId caption fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendAudio"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          ["chat_id" A..= chatId, "audio" A..= fileId, "caption" A..= caption]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
+
+--------------------------------------------------------------------------------
+makeSendDocumentRequest :: Token -> ChatId -> Maybe Caption -> FileId -> Request
+makeSendDocumentRequest token chatId caption fileId =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendDocument"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          [ "chat_id" A..= chatId
+          , "document" A..= fileId
+          , "caption" A..= caption
+          ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
 
 --------------------------------------------------------------------------------
 iAnswerQuery :: IHandle -> QueryId -> QueryAnswer -> IO ()
