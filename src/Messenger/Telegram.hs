@@ -96,7 +96,9 @@ makeGetUpdatesRequest :: Token -> Offset -> Timeout -> Request
 makeGetUpdatesRequest token offset timeout =
   let path = BSC.pack $ "/bot" ++ unpack token ++ "/getUpdates"
       host = "api.telegram.org"
-   in setRequestPath path $ setRequestHost host defaultRequest
+      requestBody = A.object ["offset" A..= offset, "timeout" A..= timeout]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
 
 --------------------------------------------------------------------------------
 updateToEvent :: Update -> Event
@@ -329,7 +331,7 @@ makeSendMessageRequest token chatId text =
       host = "api.telegram.org"
       requestBody = A.object ["chat_id" A..= chatId, "text" A..= text]
    in setRequestPath path $
-      setRequestBodyJSON requestBody $ setRequestHost host defaultRequest
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
 
 --------------------------------------------------------------------------------
 iSendMedia :: IHandle -> ChatId -> Media -> IO ()

@@ -4,6 +4,7 @@ import qualified Logger
 import qualified Logger.Test as Logger
 import qualified Messenger
 import qualified Messenger.Telegram as Telegram
+import Network.HTTP.Simple
 import Test.Hspec (describe, hspec, it, shouldBe, shouldNotBe)
 
 main :: IO ()
