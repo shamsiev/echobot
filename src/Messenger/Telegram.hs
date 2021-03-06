@@ -76,16 +76,6 @@ makeGetUpdatesRequest token offset timeout =
    in setRequestPath path $ setRequestHost host defaultRequest
 
 --------------------------------------------------------------------------------
-type StatusCode = Int
-
-type ResponseBody = ByteString
-
-sendGetUpdatesRequest :: Request -> IO (StatusCode, ResponseBody)
-sendGetUpdatesRequest request = do
-  response <- httpLBS request
-  return (getResponseStatusCode response, getResponseBody response)
-
---------------------------------------------------------------------------------
 updateToEvent :: Update -> Event
 updateToEvent Update {..}
   | isJust uMessage = messageToEvent (fromJust uMessage)
