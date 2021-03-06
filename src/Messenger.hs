@@ -7,7 +7,7 @@ data Handle =
     { getEvents :: IO [Event]
     , sendMessage :: ChatId -> Text -> IO ()
     , sendMedia :: ChatId -> Media -> IO ()
-    , answerQuery :: QueryId -> QueryAnswer -> IO ()
+    , answerQuery :: ChatId -> QueryId -> QueryData -> IO ()
     , answerHelpCommand :: ChatId -> IO ()
     , answerRepeatCommand :: ChatId -> IO ()
     }
@@ -53,7 +53,5 @@ type Caption = Text
 type QueryId = Text
 
 type QueryData = Text
-
-type QueryAnswer = Text
 
 type FailReason = Text

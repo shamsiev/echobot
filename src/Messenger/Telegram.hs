@@ -460,8 +460,36 @@ makeSendDocumentRequest token chatId caption fileId =
       setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
 
 --------------------------------------------------------------------------------
-iAnswerQuery :: IHandle -> QueryId -> QueryAnswer -> IO ()
-iAnswerQuery = undefined
+iAnswerQuery :: IHandle -> ChatId -> QueryId -> QueryData -> IO ()
+iAnswerQuery IHandle {..} chatId queryId queryData = do
+  Logger.info iLogger "Answering callback query..."
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "Current counters: " <> pack (show counters)
+  let updatedCounters =
+        M.insert chatId (read (unpack queryData) :: Int) counters
+  Logger.debug iLogger $ "Updated counters: " <> pack (show updatedCounters)
+  writeIORef iCounters updatedCounters
+  let request =
+        makeAnswerCallbackQueryRequest (cToken iConfig) queryId queryData
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> Logger.info iLogger "Successfully answered to callback query"
+    code ->
+      Logger.warning iLogger $
+      "Answered callback query with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeAnswerCallbackQueryRequest :: Token -> QueryId -> QueryData -> Request
+makeAnswerCallbackQueryRequest token queryId queryData =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/answerCallbackQuery"
+      host = "api.telegram.org"
+      requestBody =
+        A.object
+          [ "callback_query_id" A..= queryId
+          , "text" A..= ("Set repeat counter to " <> queryData)
+          ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestBodyJSON requestBody defaultRequest
 
 --------------------------------------------------------------------------------
 iAnswerHelpCommand :: IHandle -> ChatId -> IO ()
