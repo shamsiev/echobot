@@ -3,19 +3,38 @@
 
 module Messenger.Telegram where
 
-import Control.Applicative
+import Control.Applicative (Alternative((<|>)))
 import Control.Monad (replicateM_, when)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BSC
 import Data.ByteString.Lazy.Internal (ByteString)
-import Data.IORef
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import qualified Data.Map.Strict as M
-import Data.Maybe
+import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text, pack, unpack)
 import qualified Logger
 import Messenger
+  ( Caption
+  , ChatId
+  , Event(..)
+  , FileId
+  , Handle(..)
+  , Media(TelegramMedia)
+  , MediaType(MediaAnimation, MediaAudio, MediaDocument, MediaPhoto,
+          MediaSticker, MediaVideo, MediaVoice)
+  , QueryData
+  , QueryId
+  )
 import Network.HTTP.Simple
-import Prelude hiding (error)
+  ( Request
+  , defaultRequest
+  , getResponseBody
+  , getResponseStatusCode
+  , httpLBS
+  , setRequestBodyJSON
+  , setRequestHost
+  , setRequestPath
+  )
 
 --------------------------------------------------------------------------------
 new :: Config -> Logger.Handle () -> IO Handle
