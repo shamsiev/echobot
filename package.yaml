@@ -28,7 +28,6 @@ dependencies:
 - time
 - aeson
 - yaml
-- mtl
 - http-conduit
 
 library:
