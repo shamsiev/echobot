@@ -4,7 +4,7 @@
 module Messenger.Telegram where
 
 import Control.Applicative
-import Control.Monad (when)
+import Control.Monad (replicateM_, when)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BSC
 import Data.ByteString.Lazy.Internal (ByteString)
@@ -308,7 +308,28 @@ instance A.FromJSON File where
 
 --------------------------------------------------------------------------------
 iSendMessage :: IHandle -> ChatId -> Text -> IO ()
-iSendMessage = undefined
+iSendMessage IHandle {..} chatId text = do
+  Logger.info iLogger "Sending message..."
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "Current counters: " <> pack (show counters)
+  let repeatCount = M.findWithDefault (cRepeatCount iConfig) chatId counters
+  Logger.debug iLogger $
+    "Counter chosen for sendMessage: " <> pack (show repeatCount)
+  let request = makeSendMessageRequest (cToken iConfig) chatId text
+  replicateM_ repeatCount $ do
+    response <- httpLBS request
+    case getResponseStatusCode response of
+      200 -> Logger.info iLogger "Successfully sent message"
+      code ->
+        Logger.warning iLogger $ "Sent message with code: " <> pack (show code)
+
+makeSendMessageRequest :: Token -> ChatId -> Text -> Request
+makeSendMessageRequest token chatId text =
+  let path = BSC.pack $ "/bot" ++ unpack token ++ "/sendMessage"
+      host = "api.telegram.org"
+      requestBody = A.object ["chat_id" A..= chatId, "text" A..= text]
+   in setRequestPath path $
+      setRequestBodyJSON requestBody $ setRequestHost host defaultRequest
 
 --------------------------------------------------------------------------------
 iSendMedia :: IHandle -> ChatId -> Media -> IO ()
