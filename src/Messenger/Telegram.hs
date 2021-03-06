@@ -86,13 +86,6 @@ sendGetUpdatesRequest request = do
   return (getResponseStatusCode response, getResponseBody response)
 
 --------------------------------------------------------------------------------
-parseUpdates :: ResponseBody -> Either Text [Update]
-parseUpdates bs =
-  case A.eitherDecode bs of
-    Left err -> Left (pack err)
-    Right updates -> Right (uResult updates)
-
---------------------------------------------------------------------------------
 updateToEvent :: Update -> Event
 updateToEvent Update {..}
   | isJust uMessage = messageToEvent (fromJust uMessage)
