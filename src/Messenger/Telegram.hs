@@ -107,6 +107,8 @@ messageToEvent message =
     (foldr1
        (<|>)
        [ eventMessage message
+       , eventHelpCommand message
+       , eventRepeatCommand message
        , eventSticker message
        , eventAnimation message
        , eventDocument message
@@ -120,8 +122,24 @@ messageToEvent message =
 eventMessage :: Message -> Maybe Event
 eventMessage Message {..} =
   case mText of
+    Just "/help" -> Nothing
+    Just "/repeat" -> Nothing
     Just text -> Just $ EventMessage (cId mChat) text
     Nothing -> Nothing
+
+--------------------------------------------------------------------------------
+eventHelpCommand :: Message -> Maybe Event
+eventHelpCommand Message {..} =
+  case mText of
+    Just "/help" -> Just $ EventHelpCommand (cId mChat)
+    _ -> Nothing
+
+--------------------------------------------------------------------------------
+eventRepeatCommand :: Message -> Maybe Event
+eventRepeatCommand Message {..} =
+  case mText of
+    Just "/repeat" -> Just $ EventRepeatCommand (cId mChat)
+    _ -> Nothing
 
 --------------------------------------------------------------------------------
 eventSticker :: Message -> Maybe Event
@@ -129,7 +147,7 @@ eventSticker Message {..} =
   case mSticker of
     Just sticker ->
       Just $
-      EventMedia (cId mChat) (TelegramMedia mCaption MediaSticker (fId sticker))
+      EventMedia (cId mChat) (TelegramMedia Nothing MediaSticker (fId sticker))
     Nothing -> Nothing
 
 --------------------------------------------------------------------------------
