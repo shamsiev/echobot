@@ -4,6 +4,7 @@
 module Messenger.Telegram where
 
 import Control.Applicative
+import Control.Monad (when)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BSC
 import Data.ByteString.Lazy.Internal (ByteString)
@@ -14,6 +15,7 @@ import Data.Text (Text, pack, unpack)
 import qualified Logger
 import Messenger
 import Network.HTTP.Simple
+import Prelude hiding (error)
 
 --------------------------------------------------------------------------------
 new :: Config -> Logger.Handle () -> IO Handle
@@ -64,9 +66,28 @@ type Counters = M.Map ChatId RepeatCount
 
 --------------------------------------------------------------------------------
 iGetEvents :: IHandle -> IO [Event]
--- iGetEvents = PURE                  >>= IMPURE                >>= PURE         >>= PURE
--- iGetEvents = makeGetUpdatesRequest >>= sendGetUpdatesRequest >>= parseUpdates >>= map updateToEvent
-iGetEvents = undefined
+iGetEvents IHandle {..} = do
+  Logger.info iLogger "Gettings events..."
+  offset <- readIORef iOffset
+  Logger.debug iLogger $ "Current offset: " <> pack (show offset)
+  let request = makeGetUpdatesRequest (cToken iConfig) offset (cTimeout iConfig)
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> do
+      Logger.info iLogger "Received updates"
+      updates <-
+        either
+          fail
+          return
+          (A.eitherDecode (getResponseBody response) :: Either String Updates)
+      Logger.debug iLogger $ "Parsed updates: " <> pack (show updates)
+      let events = map updateToEvent (uResult updates)
+      Logger.debug iLogger $ "Current events: " <> pack (show events)
+      return events
+    code -> do
+      Logger.error iLogger $
+        "Failed on gettings updates with code: " <> pack (show code)
+      fail "Failed getting events"
 
 --------------------------------------------------------------------------------
 makeGetUpdatesRequest :: Token -> Offset -> Timeout -> Request
