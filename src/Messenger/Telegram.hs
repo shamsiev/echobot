@@ -476,7 +476,7 @@ iAnswerQuery IHandle {..} chatId queryId queryData = do
     200 -> Logger.info iLogger "Successfully answered to callback query"
     code ->
       Logger.warning iLogger $
-      "Answered callback query with code: " <> pack (show code)
+      "Answered to callback query with code: " <> pack (show code)
 
 --------------------------------------------------------------------------------
 makeAnswerCallbackQueryRequest :: Token -> QueryId -> QueryData -> Request
@@ -493,7 +493,16 @@ makeAnswerCallbackQueryRequest token queryId queryData =
 
 --------------------------------------------------------------------------------
 iAnswerHelpCommand :: IHandle -> ChatId -> IO ()
-iAnswerHelpCommand = undefined
+iAnswerHelpCommand IHandle {..} chatId = do
+  Logger.info iLogger "Answering to /help command..."
+  let request =
+        makeSendMessageRequest (cToken iConfig) chatId (cHelpMessage iConfig)
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> Logger.info iLogger "Successfully answered to /help command"
+    code ->
+      Logger.warning iLogger $
+      "Answered to /help command with code: " <> pack (show code)
 
 --------------------------------------------------------------------------------
 iAnswerRepeatCommand :: IHandle -> ChatId -> IO ()
