@@ -152,10 +152,10 @@ messageToEvent message =
 eventMessage :: Message -> Maybe Event
 eventMessage Message {..} =
   case mText of
+    Nothing -> Nothing
     Just "/help" -> Nothing
     Just "/repeat" -> Nothing
     Just text -> Just $ EventMessage (cId mChat) text
-    Nothing -> Nothing
 
 --------------------------------------------------------------------------------
 eventHelpCommand :: Message -> Maybe Event

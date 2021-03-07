@@ -36,8 +36,9 @@ data MediaType
   | MediaDocument
   deriving (Eq, Show)
 
-data VKMediaFile =
-  VKMediaFile MediaType OwnerId MediaId
+data VKMediaFile
+  = VKMediaFile MediaType OwnerId MediaId
+  | VKSticker StickerId
   deriving (Eq, Show)
 
 type OwnerId = Int
@@ -55,3 +56,5 @@ type QueryId = Text
 type QueryData = Text
 
 type FailReason = Text
+
+type StickerId = Int
