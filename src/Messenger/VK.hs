@@ -3,18 +3,37 @@
 
 module Messenger.VK where
 
-import Control.Applicative
+import Control.Applicative (Alternative((<|>)))
 import Control.Monad (replicateM_)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BSC
-import Data.IORef
+import Data.ByteString.Lazy.Internal (unpackChars)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import qualified Data.Map.Strict as M
-import Data.Maybe
+import Data.Maybe (fromJust, fromMaybe, isJust, mapMaybe)
 import Data.Text (Text, pack, unpack)
-import Data.Text.Encoding
+import Data.Text.Encoding (encodeUtf8)
 import qualified Logger
 import Messenger
+  ( ChatId
+  , Event(..)
+  , Handle(..)
+  , Media(VKMedia)
+  , MediaType(MediaAudio, MediaDocument, MediaPhoto, MediaVideo)
+  , QueryData
+  , QueryId
+  , VKMediaFile(..)
+  )
 import Network.HTTP.Simple
+  ( Request
+  , defaultRequest
+  , getResponseBody
+  , getResponseStatusCode
+  , httpLBS
+  , setRequestHost
+  , setRequestPath
+  , setRequestQueryString
+  )
 
 --------------------------------------------------------------------------------
 new :: Config -> Logger.Handle () -> IO Handle
@@ -485,8 +504,130 @@ makeAnswerCallbackQueryRequest token apiVersion chatId queryId queryData =
 
 --------------------------------------------------------------------------------
 iAnswerHelpCommand :: IHandle -> ChatId -> IO ()
-iAnswerHelpCommand = undefined
+iAnswerHelpCommand IHandle {..} chatId = do
+  Logger.info iLogger "Sending answer to /help command..."
+  let request =
+        makeAnswerHelpCommandRequest
+          (cToken iConfig)
+          (cApiVersion iConfig)
+          chatId
+          (cHelpMessage iConfig)
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> Logger.info iLogger "Successfully answered to /help command"
+    code ->
+      Logger.warning iLogger $
+      "Answered to /help command with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeAnswerHelpCommandRequest ::
+     Token -> ApiVersion -> ChatId -> HelpMessage -> Request
+makeAnswerHelpCommandRequest token apiVersion chatId helpMessage =
+  let path = "/method/messages.send"
+      host = "api.vk.com"
+      queryString =
+        [ ("user_id", Just $ BSC.pack $ show chatId)
+        , ("message", Just $ encodeUtf8 helpMessage)
+        , ("random_id", Just "0")
+        , ("access_token", Just $ encodeUtf8 token)
+        , ("v", Just $ encodeUtf8 apiVersion)
+        ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestQueryString queryString defaultRequest
 
 --------------------------------------------------------------------------------
 iAnswerRepeatCommand :: IHandle -> ChatId -> IO ()
-iAnswerRepeatCommand = undefined
+iAnswerRepeatCommand IHandle {..} chatId = do
+  Logger.info iLogger "Sending answer to /repeat command..."
+  let request = undefined
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> Logger.info iLogger "Successfully answered to /repeat command"
+    code ->
+      Logger.warning iLogger $
+      "Answered to /repeat command with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeAnswerRepeatCommandRequest ::
+     Token -> ApiVersion -> ChatId -> RepeatMessage -> Request
+makeAnswerRepeatCommandRequest token apiVersion chatId repeatMessage =
+  let path = "/method/messages.send"
+      host = "api.vk.com"
+      queryString =
+        [ ("user_id", Just $ BSC.pack $ show chatId)
+        , ("message", Just $ encodeUtf8 repeatMessage)
+        , ("keyboard", Just $ BSC.pack $ unpackChars $ A.encode keyboard)
+        , ("random_id", Just "0")
+        , ("access_token", Just $ encodeUtf8 token)
+        , ("v", Just $ encodeUtf8 apiVersion)
+        ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestQueryString queryString defaultRequest
+
+keyboard :: Keyboard
+keyboard = Keyboard [buttons]
+
+--------------------------------------------------------------------------------
+newtype Keyboard =
+  Keyboard
+    { kButtons :: [[Button]]
+    }
+  deriving (Show)
+
+instance A.ToJSON Keyboard where
+  toJSON Keyboard {..} = A.object ["buttons" A..= kButtons]
+
+--------------------------------------------------------------------------------
+buttons :: [Button]
+buttons =
+  [ Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "1", baPayload = "1"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "2", baPayload = "2"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "3", baPayload = "3"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "4", baPayload = "4"}
+      , bColor = "primary"
+      }
+  , Button
+      { bAction =
+          ButtonAction {baType = "callback", baLabel = "5", baPayload = "5"}
+      , bColor = "primary"
+      }
+  ]
+
+--------------------------------------------------------------------------------
+data Button =
+  Button
+    { bAction :: ButtonAction
+    , bColor :: Text
+    }
+  deriving (Show)
+
+instance A.ToJSON Button where
+  toJSON Button {..} = A.object ["action" A..= bAction, "color" A..= bColor]
+
+--------------------------------------------------------------------------------
+data ButtonAction =
+  ButtonAction
+    { baType :: Text
+    , baLabel :: Text
+    , baPayload :: Text
+    }
+  deriving (Show)
+
+instance A.ToJSON ButtonAction where
+  toJSON ButtonAction {..} =
+    A.object
+      ["type" A..= baType, "label" A..= baLabel, "payload" A..= baPayload]
