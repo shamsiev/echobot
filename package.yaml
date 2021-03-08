@@ -42,8 +42,8 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    # - -Wall
-    # - -Werror
+    - -Wall
+    - -Werror
     dependencies:
     - echobot
 
@@ -55,7 +55,7 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    # - -Wall
-    # - -Werror
+    - -Wall
+    - -Werror
     dependencies:
     - echobot
