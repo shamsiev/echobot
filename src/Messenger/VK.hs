@@ -291,11 +291,11 @@ messageToEvent message =
     UnknownEvent
     (foldr1
        (<|>)
-       [ eventMessage message
+       [ eventQuery message
+       , eventMessage message
        , eventHelpCommand message
        , eventRepeatCommand message
        , eventMedia message
-       , eventQuery message
        ])
 
 --------------------------------------------------------------------------------

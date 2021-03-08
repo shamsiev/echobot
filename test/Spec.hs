@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import qualified Data.ByteString.Char8 as BSC
 import qualified Logger
 import qualified Logger.Test as Logger
 import qualified Messenger
 import qualified Messenger.Telegram as Telegram
+import qualified Messenger.VK as VK
 import Test.Hspec (describe, hspec, it, shouldBe, shouldNotBe)
 
 main :: IO ()
@@ -918,3 +920,190 @@ main =
                 (Telegram.Chat 1234)
                 (Just "query_data"))) `shouldBe`
           Messenger.EventQuery 1234 "query_id" "query_data"
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.mediaFileToBSC" $ do
+      it "recognizes sticker" $ do
+        VK.mediaFileToBSC (Messenger.VKSticker 1234) `shouldBe` Nothing
+      it "recognizes photo" $ do
+        VK.mediaFileToBSC (Messenger.VKMediaFile Messenger.MediaPhoto 1111 2222) `shouldBe`
+          Just "photo1111_2222"
+      it "recognizes video" $ do
+        VK.mediaFileToBSC (Messenger.VKMediaFile Messenger.MediaVideo 1111 2222) `shouldBe`
+          Just "video1111_2222"
+      it "recognizes audio" $ do
+        VK.mediaFileToBSC (Messenger.VKMediaFile Messenger.MediaAudio 1111 2222) `shouldBe`
+          Just "audio1111_2222"
+      it "recognizes document" $ do
+        VK.mediaFileToBSC
+          (Messenger.VKMediaFile Messenger.MediaDocument 1111 2222) `shouldBe`
+          Just "doc1111_2222"
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.findSticker" $ do
+      it "returns Nothing if there is no sticker" $ do
+        VK.findSticker [] `shouldBe` Nothing
+      it "returns sticker_id if there is sticker" $ do
+        VK.findSticker [Messenger.VKSticker 12345] `shouldBe` Just "12345"
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.eventQuery" $ do
+      it "returns Nothing if there is no query event" $ do
+        VK.eventQuery (VK.Message 1234 Nothing [] Nothing Nothing) `shouldBe`
+          Nothing
+      it "returns EventQuery if there is query event" $ do
+        VK.eventQuery
+          (VK.Message
+             1234
+             (Just "actual data")
+             []
+             (Just "payload")
+             (Just "1337")) `shouldBe`
+          Just (Messenger.EventQuery 1234 "1337" "actual data")
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.attachmentToMedia" $ do
+      it "recognizes photo attachment" $ do
+        VK.attachmentToMedia
+          (VK.Attachment
+             (Just $ VK.File Nothing 1234 4321)
+             Nothing
+             Nothing
+             Nothing
+             Nothing) `shouldBe`
+          Just (Messenger.VKMediaFile Messenger.MediaPhoto 4321 1234)
+      it "recognizes audio attachment" $ do
+        VK.attachmentToMedia
+          (VK.Attachment
+             Nothing
+             (Just $ VK.File Nothing 1234 4321)
+             Nothing
+             Nothing
+             Nothing) `shouldBe`
+          Just (Messenger.VKMediaFile Messenger.MediaAudio 4321 1234)
+      it "recognizes sticker attachment" $ do
+        VK.attachmentToMedia
+          (VK.Attachment
+             Nothing
+             Nothing
+             (Just $ VK.Sticker 1337)
+             Nothing
+             Nothing) `shouldBe`
+          Just (Messenger.VKSticker 1337)
+      it "recognizes document attachment" $ do
+        VK.attachmentToMedia
+          (VK.Attachment
+             Nothing
+             Nothing
+             Nothing
+             (Just $ VK.File Nothing 1234 4321)
+             Nothing) `shouldBe`
+          Just (Messenger.VKMediaFile Messenger.MediaDocument 4321 1234)
+      it "recognizes video attachment" $ do
+        VK.attachmentToMedia
+          (VK.Attachment
+             Nothing
+             Nothing
+             Nothing
+             Nothing
+             (Just $ VK.File Nothing 1234 4321)) `shouldBe`
+          Just (Messenger.VKMediaFile Messenger.MediaVideo 4321 1234)
+      it "returns Nothing if there is no suitable attachment" $ do
+        VK.attachmentToMedia
+          (VK.Attachment Nothing Nothing Nothing Nothing Nothing) `shouldBe`
+          Nothing
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.eventMedia" $ do
+      it "returns Nothing if there are no attachments" $ do
+        VK.eventMedia (VK.Message 1234 Nothing [] Nothing Nothing) `shouldBe`
+          Nothing
+      it "returns Media if there are attachments" $ do
+        VK.eventMedia
+          (VK.Message
+             1234
+             Nothing
+             [VK.Attachment Nothing Nothing Nothing Nothing Nothing]
+             Nothing
+             Nothing) `shouldNotBe`
+          Nothing
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.eventRepeatCommand" $ do
+      it "returns EventRepeatCommand if user sent '/repeat'" $ do
+        VK.eventRepeatCommand
+          (VK.Message 1234 (Just "/repeat") [] Nothing Nothing) `shouldNotBe`
+          Nothing
+      it "returns Nothing if user did not send '/repeat'" $ do
+        VK.eventRepeatCommand
+          (VK.Message 1234 (Just "some text") [] Nothing Nothing) `shouldBe`
+          Nothing
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.eventHelpCommand" $ do
+      it "returns EventHelpCommand if user sent '/help'" $ do
+        VK.eventHelpCommand (VK.Message 1234 (Just "/help") [] Nothing Nothing) `shouldNotBe`
+          Nothing
+      it "returns Nothing if user did not send '/help'" $ do
+        VK.eventHelpCommand
+          (VK.Message 1234 (Just "some text") [] Nothing Nothing) `shouldBe`
+          Nothing
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.eventMessage" $ do
+      it "returns Nothing if message is empty" $ do
+        VK.eventMessage (VK.Message 1234 Nothing [] Nothing Nothing) `shouldBe`
+          Nothing
+      it "returns Nothing if user sent '/help'" $ do
+        VK.eventMessage (VK.Message 1234 (Just "/help") [] Nothing Nothing) `shouldBe`
+          Nothing
+      it "returns Nothing if user sent '/repeat'" $ do
+        VK.eventMessage (VK.Message 1234 (Just "/repeat") [] Nothing Nothing) `shouldBe`
+          Nothing
+      it "returns EventMessage if user sent some text" $ do
+        VK.eventMessage
+          (VK.Message 1234 (Just "egh hop some text") [] Nothing Nothing) `shouldNotBe`
+          Nothing
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.messageToEvent" $ do
+      it "returns EventMessage" $ do
+        VK.messageToEvent (VK.Message 1234 (Just "text") [] Nothing Nothing) `shouldBe`
+          Messenger.EventMessage 1234 "text"
+      it "returns EventHelpCommand" $ do
+        VK.messageToEvent (VK.Message 1234 (Just "/help") [] Nothing Nothing) `shouldBe`
+          Messenger.EventHelpCommand 1234
+      it "returns EventRepeatCommand" $ do
+        VK.messageToEvent (VK.Message 1234 (Just "/repeat") [] Nothing Nothing) `shouldBe`
+          Messenger.EventRepeatCommand 1234
+      it "returns EventMedia" $ do
+        VK.messageToEvent
+          (VK.Message
+             1234
+             Nothing
+             [ VK.Attachment
+                 Nothing
+                 Nothing
+                 (Just $ VK.Sticker 1337)
+                 Nothing
+                 Nothing
+             ]
+             Nothing
+             Nothing) `shouldBe`
+          Messenger.EventMedia
+            1234
+            (Messenger.VKMedia Nothing [Messenger.VKSticker 1337])
+      it "returns EventQuery" $ do
+        VK.messageToEvent
+          (VK.Message
+             1234
+             (Just "query data")
+             []
+             (Just "payload")
+             (Just "query id")) `shouldBe`
+          Messenger.EventQuery 1234 "query id" "query data"
+      it "returns UknownEvent if there is no suitable event" $ do
+        VK.messageToEvent (VK.Message 1234 Nothing [] Nothing Nothing) `shouldBe`
+          Messenger.UnknownEvent
+--------------------------------------------------------------------------------
+    describe "Messenger.VK.updateToEvent" $ do
+      it "returns UnknownEvent if there is no message" $ do
+        VK.updateToEvent (VK.Update (VK.UObject Nothing)) `shouldBe`
+          Messenger.UnknownEvent
+      it "returns some event if there is valid message" $ do
+        VK.updateToEvent
+          (VK.Update
+             (VK.UObject
+                (Just $ VK.Message 1234 (Just "text") [] Nothing Nothing))) `shouldBe`
+          Messenger.EventMessage 1234 "text"
