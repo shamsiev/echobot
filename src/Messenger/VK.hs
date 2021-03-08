@@ -4,12 +4,13 @@
 module Messenger.VK where
 
 import Control.Applicative
+import Control.Monad (replicateM_)
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BSC
 import Data.IORef
 import qualified Data.Map.Strict as M
 import Data.Maybe
-import Data.Text (Text, pack)
+import Data.Text (Text, pack, unpack)
 import Data.Text.Encoding
 import qualified Logger
 import Messenger
@@ -35,7 +36,7 @@ data IHandle =
   IHandle
     { iConfig :: Config
     , iLogger :: Logger.Handle ()
-    , iOCounters :: IORef Counters
+    , iCounters :: IORef Counters
     }
 
 --------------------------------------------------------------------------------
@@ -345,15 +346,142 @@ eventQuery Message {..}
 
 --------------------------------------------------------------------------------
 iSendMessage :: IHandle -> ChatId -> Text -> IO ()
-iSendMessage = undefined
+iSendMessage IHandle {..} chatId text = do
+  Logger.info iLogger "Sending message..."
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "Current counters: " <> pack (show counters)
+  let repeatCount = M.findWithDefault (cRepeatCount iConfig) chatId counters
+  Logger.debug iLogger $
+    "Counter chosen for sending message: " <> pack (show repeatCount)
+  let request =
+        makeSendMessageRequest
+          (cToken iConfig)
+          (cApiVersion iConfig)
+          chatId
+          text
+  replicateM_ repeatCount $ do
+    response <- httpLBS request
+    case getResponseStatusCode response of
+      200 -> Logger.info iLogger "Successfully sent message"
+      code ->
+        Logger.warning iLogger $ "Sent message with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeSendMessageRequest :: Token -> ApiVersion -> ChatId -> Text -> Request
+makeSendMessageRequest token apiVersion chatId text =
+  let path = "/method/messages.send"
+      host = "api.vk.com"
+      queryString =
+        [ ("user_id", Just $ BSC.pack $ show chatId)
+        , ("message", Just $ encodeUtf8 text)
+        , ("random_id", Just "0")
+        , ("access_token", Just $ encodeUtf8 token)
+        , ("v", Just $ encodeUtf8 apiVersion)
+        ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestQueryString queryString defaultRequest
 
 --------------------------------------------------------------------------------
 iSendMedia :: IHandle -> ChatId -> Media -> IO ()
-iSendMedia = undefined
+iSendMedia IHandle {..} chatId (VKMedia text mediaFiles) = do
+  Logger.info iLogger "Sending media..."
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "Current counters: " <> pack (show counters)
+  let repeatCount = M.findWithDefault (cRepeatCount iConfig) chatId counters
+  Logger.debug iLogger $
+    "Counter chosen for sending message: " <> pack (show repeatCount)
+  let request =
+        makeSendMediaRequest
+          (cToken iConfig)
+          (cApiVersion iConfig)
+          chatId
+          text
+          mediaFiles
+  replicateM_ repeatCount $ do
+    response <- httpLBS request
+    case getResponseStatusCode response of
+      200 -> Logger.info iLogger "Successfully sent media"
+      code ->
+        Logger.warning iLogger $ "Sent media with code: " <> pack (show code)
+iSendMedia _ _ _ = fail "Unable to send media: wrong format"
+
+--------------------------------------------------------------------------------
+makeSendMediaRequest ::
+     Token -> ApiVersion -> ChatId -> Maybe Text -> [VKMediaFile] -> Request
+makeSendMediaRequest token apiVersion chatId text mediaFiles =
+  let path = "/method/messages.send"
+      host = "api.vk.com"
+      queryString =
+        [ ("user_id", Just $ BSC.pack $ show chatId)
+        , ("message", encodeUtf8 <$> text)
+        , ("sticker_id", findSticker mediaFiles)
+        , ("random_id", Just "0")
+        , ("access_token", Just $ encodeUtf8 token)
+        , ( "attachment"
+          , Just $ BSC.intercalate "," $ mapMaybe mediaFileToBSC mediaFiles)
+        , ("v", Just $ encodeUtf8 apiVersion)
+        ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestQueryString queryString defaultRequest
+
+--------------------------------------------------------------------------------
+findSticker :: [VKMediaFile] -> Maybe BSC.ByteString
+findSticker [] = Nothing
+findSticker ((VKSticker stickerId):_) = Just $ BSC.pack $ show stickerId
+findSticker (_:mediaFiles) = findSticker mediaFiles
+
+--------------------------------------------------------------------------------
+mediaFileToBSC :: VKMediaFile -> Maybe BSC.ByteString
+mediaFileToBSC (VKMediaFile MediaPhoto ownerId mediaId) =
+  Just $ BSC.pack $ "photo" ++ show ownerId ++ "_" ++ show mediaId
+mediaFileToBSC (VKMediaFile MediaVideo ownerId mediaId) =
+  Just $ BSC.pack $ "video" ++ show ownerId ++ "_" ++ show mediaId
+mediaFileToBSC (VKMediaFile MediaAudio ownerId mediaId) =
+  Just $ BSC.pack $ "audio" ++ show ownerId ++ "_" ++ show mediaId
+mediaFileToBSC (VKMediaFile MediaDocument ownerId mediaId) =
+  Just $ BSC.pack $ "doc" ++ show ownerId ++ "_" ++ show mediaId
+mediaFileToBSC _ = Nothing
 
 --------------------------------------------------------------------------------
 iAnswerQuery :: IHandle -> ChatId -> QueryId -> QueryData -> IO ()
-iAnswerQuery = undefined
+iAnswerQuery IHandle {..} chatId queryId queryData = do
+  Logger.info iLogger "Answering callback query..."
+  counters <- readIORef iCounters
+  Logger.debug iLogger $ "Current counters: " <> pack (show counters)
+  let updatedCounters =
+        M.insert chatId (read (unpack queryData) :: Int) counters
+  Logger.debug iLogger $ "Updated counters: " <> pack (show updatedCounters)
+  writeIORef iCounters updatedCounters
+  let request =
+        makeAnswerCallbackQueryRequest
+          (cToken iConfig)
+          (cApiVersion iConfig)
+          chatId
+          queryId
+          queryData
+  response <- httpLBS request
+  case getResponseStatusCode response of
+    200 -> Logger.info iLogger "Successfully answered callback query"
+    code ->
+      Logger.warning iLogger $
+      "Answered callback query with code: " <> pack (show code)
+
+--------------------------------------------------------------------------------
+makeAnswerCallbackQueryRequest ::
+     Token -> ApiVersion -> ChatId -> QueryId -> QueryData -> Request
+makeAnswerCallbackQueryRequest token apiVersion chatId queryId queryData =
+  let path = "/method/messages.sendMessageEventAnswer"
+      host = "api.vk.com"
+      queryString =
+        [ ("user_id", Just $ BSC.pack $ show chatId)
+        , ("event_id", Just $ encodeUtf8 queryId)
+        , ( "event_data"
+          , Just $ encodeUtf8 $ "Set repeat count to: " <> queryData)
+        , ("access_token", Just $ encodeUtf8 token)
+        , ("v", Just $ encodeUtf8 apiVersion)
+        ]
+   in setRequestPath path $
+      setRequestHost host $ setRequestQueryString queryString defaultRequest
 
 --------------------------------------------------------------------------------
 iAnswerHelpCommand :: IHandle -> ChatId -> IO ()
