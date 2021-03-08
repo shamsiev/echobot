@@ -223,7 +223,7 @@ data Message =
     , mText :: Maybe Text
     , mAttachments :: [Attachment]
     , mPayload :: Maybe Text
-    , mEventId :: Maybe Text
+    , mEventId :: Maybe QueryId
     }
   deriving (Show)
 
@@ -359,8 +359,8 @@ attachmentToMedia Attachment {..}
 --------------------------------------------------------------------------------
 eventQuery :: Message -> Maybe Event
 eventQuery Message {..}
-  | isJust mPayload && isJust mText && isJust mEventId =
-    Just $ EventQuery mFromId (fromJust mEventId) (fromJust mText)
+  | isJust mPayload && isJust mText =
+    Just $ EventQuery mFromId "" (fromJust mText)
   | otherwise = Nothing
 
 --------------------------------------------------------------------------------
@@ -463,44 +463,15 @@ mediaFileToBSC _ = Nothing
 
 --------------------------------------------------------------------------------
 iAnswerQuery :: IHandle -> ChatId -> QueryId -> QueryData -> IO ()
-iAnswerQuery IHandle {..} chatId queryId queryData = do
-  Logger.info iLogger "Answering callback query..."
+iAnswerQuery IHandle {..} chatId _ queryData = do
+  Logger.info iLogger $
+    "Changing repeat coutner for user: " <> pack (show chatId)
   counters <- readIORef iCounters
   Logger.debug iLogger $ "Current counters: " <> pack (show counters)
   let updatedCounters =
         M.insert chatId (read (unpack queryData) :: Int) counters
   Logger.debug iLogger $ "Updated counters: " <> pack (show updatedCounters)
   writeIORef iCounters updatedCounters
-  let request =
-        makeAnswerCallbackQueryRequest
-          (cToken iConfig)
-          (cApiVersion iConfig)
-          chatId
-          queryId
-          queryData
-  response <- httpLBS request
-  case getResponseStatusCode response of
-    200 -> Logger.info iLogger "Successfully answered callback query"
-    code ->
-      Logger.warning iLogger $
-      "Answered callback query with code: " <> pack (show code)
-
---------------------------------------------------------------------------------
-makeAnswerCallbackQueryRequest ::
-     Token -> ApiVersion -> ChatId -> QueryId -> QueryData -> Request
-makeAnswerCallbackQueryRequest token apiVersion chatId queryId queryData =
-  let path = "/method/messages.sendMessageEventAnswer"
-      host = "api.vk.com"
-      queryString =
-        [ ("user_id", Just $ BSC.pack $ show chatId)
-        , ("event_id", Just $ encodeUtf8 queryId)
-        , ( "event_data"
-          , Just $ encodeUtf8 $ "Set repeat count to: " <> queryData)
-        , ("access_token", Just $ encodeUtf8 token)
-        , ("v", Just $ encodeUtf8 apiVersion)
-        ]
-   in setRequestPath path $
-      setRequestHost host $ setRequestQueryString queryString defaultRequest
 
 --------------------------------------------------------------------------------
 iAnswerHelpCommand :: IHandle -> ChatId -> IO ()
@@ -539,7 +510,12 @@ makeAnswerHelpCommandRequest token apiVersion chatId helpMessage =
 iAnswerRepeatCommand :: IHandle -> ChatId -> IO ()
 iAnswerRepeatCommand IHandle {..} chatId = do
   Logger.info iLogger "Sending answer to /repeat command..."
-  let request = undefined
+  let request =
+        makeAnswerRepeatCommandRequest
+          (cToken iConfig)
+          (cApiVersion iConfig)
+          chatId
+          (cRepeatMessage iConfig)
   response <- httpLBS request
   case getResponseStatusCode response of
     200 -> Logger.info iLogger "Successfully answered to /repeat command"
@@ -581,28 +557,23 @@ instance A.ToJSON Keyboard where
 buttons :: [Button]
 buttons =
   [ Button
-      { bAction =
-          ButtonAction {baType = "callback", baLabel = "1", baPayload = "1"}
+      { bAction = ButtonAction {baType = "text", baLabel = "1", baPayload = "1"}
       , bColor = "primary"
       }
   , Button
-      { bAction =
-          ButtonAction {baType = "callback", baLabel = "2", baPayload = "2"}
+      { bAction = ButtonAction {baType = "text", baLabel = "2", baPayload = "2"}
       , bColor = "primary"
       }
   , Button
-      { bAction =
-          ButtonAction {baType = "callback", baLabel = "3", baPayload = "3"}
+      { bAction = ButtonAction {baType = "text", baLabel = "3", baPayload = "3"}
       , bColor = "primary"
       }
   , Button
-      { bAction =
-          ButtonAction {baType = "callback", baLabel = "4", baPayload = "4"}
+      { bAction = ButtonAction {baType = "text", baLabel = "4", baPayload = "4"}
       , bColor = "primary"
       }
   , Button
-      { bAction =
-          ButtonAction {baType = "callback", baLabel = "5", baPayload = "5"}
+      { bAction = ButtonAction {baType = "text", baLabel = "5", baPayload = "5"}
       , bColor = "primary"
       }
   ]

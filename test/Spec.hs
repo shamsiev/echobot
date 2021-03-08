@@ -950,13 +950,8 @@ main =
           Nothing
       it "returns EventQuery if there is query event" $ do
         VK.eventQuery
-          (VK.Message
-             1234
-             (Just "actual data")
-             []
-             (Just "payload")
-             (Just "1337")) `shouldBe`
-          Just (Messenger.EventQuery 1234 "1337" "actual data")
+          (VK.Message 1234 (Just "actual data") [] (Just "payload") Nothing) `shouldBe`
+          Just (Messenger.EventQuery 1234 "" "actual data")
 --------------------------------------------------------------------------------
     describe "Messenger.VK.attachmentToMedia" $ do
       it "recognizes photo attachment" $ do
@@ -1086,13 +1081,8 @@ main =
             (Messenger.VKMedia Nothing [Messenger.VKSticker 1337])
       it "returns EventQuery" $ do
         VK.messageToEvent
-          (VK.Message
-             1234
-             (Just "query data")
-             []
-             (Just "payload")
-             (Just "query id")) `shouldBe`
-          Messenger.EventQuery 1234 "query id" "query data"
+          (VK.Message 1234 (Just "query data") [] (Just "payload") Nothing) `shouldBe`
+          Messenger.EventQuery 1234 "" "query data"
       it "returns UknownEvent if there is no suitable event" $ do
         VK.messageToEvent (VK.Message 1234 Nothing [] Nothing Nothing) `shouldBe`
           Messenger.UnknownEvent

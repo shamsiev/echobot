@@ -268,8 +268,8 @@ data Update =
 instance A.FromJSON Update where
   parseJSON =
     A.withObject "Messenger.Telegram.Updates" $ \o ->
-      Update <$> o A..: "update_id" <*> o A..: "message" <*>
-      o A..: "callback_query"
+      Update <$> o A..: "update_id" <*> o A..:? "message" <*>
+      o A..:? "callback_query"
 
 --------------------------------------------------------------------------------
 data Message =

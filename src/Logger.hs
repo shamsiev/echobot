@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Logger
   ( Handle(..)
   , Logger(..)
@@ -10,7 +12,8 @@ module Logger
   , error
   ) where
 
-import Data.Text (Text)
+import Data.Text (Text, unpack)
+import Data.Yaml (FromJSON(parseJSON), withText)
 import Prelude hiding (error, log)
 import Text.Printf (printf)
 
@@ -30,6 +33,16 @@ instance Show Level where
   show Info = " INFO"
   show Warning = " WARN"
   show Error = "ERROR"
+
+instance FromJSON Level where
+  parseJSON =
+    withText "Logger.Level" $ \t ->
+      case t of
+        "debug" -> pure Debug
+        "info" -> pure Info
+        "warning" -> pure Warning
+        "error" -> pure Error
+        _ -> fail $ "Unknown log_level: " <> unpack t
 
 data Logger
   = NoLogger
