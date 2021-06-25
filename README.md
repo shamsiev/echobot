@@ -2,6 +2,9 @@
 
 --------------------------------------
 
+## ABANDONED
+I don't have any time or wish to continue the work on this project. The application itself is written using the 'Handle/Service' pattern. If you learn Haskell and wish to understand this pattern, you can find something helpful in this code (although this is a really bad code).
+
 ## Usage
 - Clone this repository: `git clone https://github.com/shamsiev/echobot`
 - Create `config.yaml` in root of the project (see [configuration file example](#configuration-file-example))
